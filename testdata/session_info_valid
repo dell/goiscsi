@@ -1,0 +1,84 @@
+Target: iqn.2015-10.com.dell:dellemc-foobar-123-a-7ceb34a3 (non-flash)
+	Current Portal: 192.168.1.1:3260,1
+	Persistent Portal: 192.168.1.1:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1994-05.com.redhat:650e84b584d
+		Iface IPaddress: 1.1.1.1
+		Iface HWaddress: <empty>
+		Iface Netdev: <empty>
+		SID: 12
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: admin
+		password: foobar
+		username_in: <empty>
+		password_in: <empty>
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+Target: iqn.2015-10.com.dell:dellemc-foobar-123-b-61ecc53a (non-flash)
+	Current Portal: 192.168.1.2:3260,1
+	Persistent Portal: 192.168.1.2:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1994-05.com.redhat:650e84b585d
+		Iface IPaddress: 1.1.1.1
+		Iface HWaddress: <empty>
+		Iface Netdev: <empty>
+		SID: 13
+		iSCSI Connection State: FREE
+		iSCSI Session State: FAILED
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: <empty>
+		password: <empty>
+		username_in: <empty>
+		password_in: <empty>
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
