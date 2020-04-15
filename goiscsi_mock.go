@@ -7,21 +7,28 @@ import (
 )
 
 const (
-
 	// MockNumberOfInitiators controls the number of initiators found in mock mode
 	MockNumberOfInitiators = "numberOfInitiators"
 	// MockNumberOfTargets controls the number of targets found in mock mode
 	MockNumberOfTargets = "numberOfTargets"
+	// MockNumberOfSessions controls the number of  iSCIS sessions found in mock mode
+	MockNumberOfSessions = "numberOfSession"
+	// MockNumberOfNodes controls the number of  iSCIS sessions found in mock mode
+	MockNumberOfNodes = "numberOfNode"
 )
 
 var (
 	// GOISCSIMock is a struct controlling induced errors
 	GOISCSIMock struct {
-		InduceDiscoveryError bool
-		InduceInitiatorError bool
-		InduceLoginError     bool
-		InduceLogoutError    bool
-		InduceRescanError    bool
+		InduceDiscoveryError          bool
+		InduceInitiatorError          bool
+		InduceLoginError              bool
+		InduceLogoutError             bool
+		InduceRescanError             bool
+		InduceGetSessionsError        bool
+		InduceGetNodesError           bool
+		InduceCreateOrUpdateNodeError bool
+		InduceDeleteNodeError         bool
 	}
 )
 
@@ -119,6 +126,68 @@ func (iscsi *MockISCSI) performRescan() error {
 	return nil
 }
 
+func (iscsi *MockISCSI) getSessions() ([]ISCSISession, error) {
+
+	if GOISCSIMock.InduceGetSessionsError {
+		return []ISCSISession{}, errors.New("getSessions induced error")
+	}
+
+	var sessions []ISCSISession
+	count := getOptionAsInt(iscsi.options, MockNumberOfSessions)
+	if count == 0 {
+		count = 1
+	}
+	for idx := 0; idx < int(count); idx++ {
+		init := fmt.Sprintf("%05d", idx)
+		session := ISCSISession{}
+		session.Target = fmt.Sprintf("iqn.2015-10.com.dell:dellemc-foobar-123-a-7ceb34a%d", idx)
+		session.Portal = fmt.Sprintf("192.168.1.%d", idx)
+		session.IfaceInitiatorname = "iqn.1993-08.com.mock:01:00000000" + init
+		session.IfaceTransport = ISCSITransportName_TCP
+		session.ISCSIConnectionState = ISCSIConnectionState_IN_LOGIN
+		session.ISCSISessionState = ISCSISessionState_LOGGED_IN
+		session.IfaceIPaddress = "192.168.1.10"
+		sessions = append(sessions, session)
+	}
+	return sessions, nil
+}
+
+func (iscsi *MockISCSI) getNodes() ([]ISCSINode, error) {
+
+	if GOISCSIMock.InduceGetNodesError {
+		return []ISCSINode{}, errors.New("getSessions induced error")
+	}
+
+	var nodes []ISCSINode
+	count := getOptionAsInt(iscsi.options, MockNumberOfNodes)
+	if count == 0 {
+		count = 1
+	}
+	for idx := 0; idx < int(count); idx++ {
+		node := ISCSINode{}
+		node.Target = fmt.Sprintf("iqn.2015-10.com.dell:dellemc-foobar-123-a-7ceb34a%d", idx)
+		node.Portal = fmt.Sprintf("192.168.1.%d", idx)
+		node.Fields = make(map[string]string)
+		node.Fields["node.session.scan"] = "auto"
+		nodes = append(nodes, node)
+	}
+	return nodes, nil
+}
+
+func (iscsi *MockISCSI) newNode(target ISCSITarget, options map[string]string) error {
+	if GOISCSIMock.InduceCreateOrUpdateNodeError {
+		return errors.New("newNode induced error")
+	}
+	return nil
+}
+
+func (iscsi *MockISCSI) deleteNode(target ISCSITarget) error {
+	if GOISCSIMock.InduceDeleteNodeError {
+		return errors.New("newNode induced error")
+	}
+	return nil
+}
+
 // ====================================================================
 // Architecture agnostic code for the mock implementation
 
@@ -145,4 +214,24 @@ func (iscsi *MockISCSI) PerformLogout(target ISCSITarget) error {
 // PerformRescan will will rescan targets known to current sessions
 func (iscsi *MockISCSI) PerformRescan() error {
 	return iscsi.performRescan()
+}
+
+// Query iSCSI session info
+func (iscsi *MockISCSI) GetSessions() ([]ISCSISession, error) {
+	return iscsi.getSessions()
+}
+
+// Query iSCSI session info
+func (iscsi *MockISCSI) GetNodes() ([]ISCSINode, error) {
+	return iscsi.getNodes()
+}
+
+// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid database
+func (iscsi *MockISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
+	return iscsi.newNode(target, options)
+}
+
+// DeleteNode delete iSCSI node from iscsid database
+func (iscsi *MockISCSI) DeleteNode(target ISCSITarget) error {
+	return iscsi.deleteNode(target)
 }

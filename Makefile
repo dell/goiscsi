@@ -1,7 +1,7 @@
 
 # These values should be set for running the entire test suite
 # all must be valid
-Portal="10.247.73.127"
+Portal="1.1.1.1"
 Target="iqn.1992-04.com.emc:600009700bcbb70e3287017400000000"
 
 
