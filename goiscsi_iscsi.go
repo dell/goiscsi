@@ -13,11 +13,17 @@ const (
 	ChrootDirectory = "chrootDirectory"
 	// DefaultInitiatorNameFile is the default file which contains the initiator names
 	DefaultInitiatorNameFile = "/etc/iscsi/initiatorname.iscsi"
+
+	// ISCSINoObjsFoundExitCode exit code indicates that no records/targets/sessions/portals
+	// found to execute operation on
+	iSCSINoObjsFoundExitCode = 21
 )
 
 // LinuxISCSI provides many iSCSI-specific functions.
 type LinuxISCSI struct {
 	ISCSIType
+	sessionParser iSCSISessionParser
+	nodeParser    iSCSINodeParser
 }
 
 // NewLinuxISCSI returns an LinuxISCSI client
@@ -29,6 +35,8 @@ func NewLinuxISCSI(opts map[string]string) *LinuxISCSI {
 			options: opts,
 		},
 	}
+	iscsi.sessionParser = &sessionParser{}
+	iscsi.nodeParser = &nodeParser{}
 
 	return &iscsi
 }
@@ -243,4 +251,87 @@ func (iscsi *LinuxISCSI) performRescan() error {
 		return err
 	}
 	return nil
+}
+
+// Query information about sessions
+func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
+	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "session", "-P", "2", "-S"})
+	cmd := exec.Command(exe[0], exe[1:]...)
+	output, err := cmd.Output()
+	if err != nil {
+		if isNoObjsExitCode(err) {
+			return []ISCSISession{}, nil
+		}
+		return []ISCSISession{}, err
+	}
+	return iscsi.sessionParser.Parse(output), nil
+}
+
+// Query information about nodes
+func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
+	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-o", "show"})
+	cmd := exec.Command(exe[0], exe[1:]...)
+	output, err := cmd.Output()
+	if err != nil {
+		if isNoObjsExitCode(err) {
+			return []ISCSINode{}, nil
+		}
+		return []ISCSINode{}, err
+	}
+	return iscsi.nodeParser.Parse(output), nil
+}
+
+// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid database
+func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
+	baseCmd := iscsi.buildISCSICommand(
+		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target})
+
+	var commands [][]string
+
+	cmd := exec.Command(baseCmd[0], baseCmd[1:]...)
+	_, err := cmd.Output()
+	if err != nil {
+		if !isNoObjsExitCode(err) {
+			return err
+		}
+		c := append(append([]string{}, baseCmd...), "-o", "new")
+		commands = append(commands, c)
+	}
+
+	for k, v := range options {
+		c := append(append([]string{}, baseCmd...), "-o", "update", "-n", k, "-v", v)
+		commands = append(commands, c)
+	}
+	for _, command := range commands {
+		cmd := exec.Command(command[0], command[1:]...)
+		_, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeleteNode delete iSCSI node from iscsid database
+func (iscsi *LinuxISCSI) DeleteNode(target ISCSITarget) error {
+	exe := iscsi.buildISCSICommand(
+		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target, "-o", "delete"})
+	cmd := exec.Command(exe[0], exe[1:]...)
+	_, err := cmd.Output()
+	if err != nil {
+		if isNoObjsExitCode(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func isNoObjsExitCode(err error) bool {
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return exitError.ExitCode() == iSCSINoObjsFoundExitCode
+		}
+	}
+	return false
 }

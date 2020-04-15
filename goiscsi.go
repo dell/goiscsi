@@ -23,6 +23,18 @@ type ISCSIinterface interface {
 	// Rescan current iSCSI sessions
 	PerformRescan() error
 
+	// Query information about sessions
+	GetSessions() ([]ISCSISession, error)
+
+	// Query information about nodes
+	GetNodes() ([]ISCSINode, error)
+
+	// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid database
+	CreateOrUpdateNode(target ISCSITarget, options map[string]string) error
+
+	// DeleteNode delete iSCSI node from iscsid database
+	DeleteNode(target ISCSITarget) error
+
 	// generic implementations
 	isMock() bool
 	getOptions() map[string]string
