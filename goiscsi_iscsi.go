@@ -73,7 +73,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 
 	out, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("Error discovering %s: %v", address, err)
+		fmt.Printf("\nError discovering %s: %v", address, err)
 		return []ISCSITarget{}, err
 	}
 
@@ -183,14 +183,14 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 				// do not treat this as a failure
 				err = nil
 			} else {
-				fmt.Printf("iscsiadm login failure: %v", err)
+				fmt.Printf("\niscsiadm login failure: %v", err)
 			}
 		} else {
-			fmt.Printf("Error logging %s at %s: %v", target.Target, target.Portal, err)
+			fmt.Printf("\nError logging %s at %s: %v", target.Target, target.Portal, err)
 		}
 
 		if err != nil {
-			fmt.Printf("Error logging %s at %s: %v", target.Target, target.Portal, err)
+			fmt.Printf("\nError logging %s at %s: %v", target.Target, target.Portal, err)
 			return err
 		}
 	}
@@ -281,7 +281,16 @@ func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
 	return iscsi.nodeParser.Parse(output), nil
 }
 
-// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid database
+//
+func (iscsi *LinuxISCSI) SetCHAPCredentials(target ISCSITarget, username, password string) error {
+	options := make(map[string]string)
+	options["node.session.auth.authmethod"] = "CHAP"
+	options["node.session.auth.username"] = username
+	options["node.session.auth.password"] = password
+	return iscsi.CreateOrUpdateNode(target, options)
+}
+
+// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid dm
 func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
 	baseCmd := iscsi.buildISCSICommand(
 		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target})
