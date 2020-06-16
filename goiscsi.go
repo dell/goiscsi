@@ -29,6 +29,9 @@ type ISCSIinterface interface {
 	// Query information about nodes
 	GetNodes() ([]ISCSINode, error)
 
+	// Set CHAP credentials for a target (creates/updates node database)
+	SetCHAPCredentials(target ISCSITarget, username, password string) error
+
 	// CreateOrUpdateNode creates new or update existing iSCSI node in iscsid database
 	CreateOrUpdateNode(target ISCSITarget, options map[string]string) error
 

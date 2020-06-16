@@ -30,6 +30,7 @@ func reset() {
 	GOISCSIMock.InduceGetSessionsError = false
 	GOISCSIMock.InduceGetNodesError = false
 	GOISCSIMock.InduceCreateOrUpdateNodeError = false
+	GOISCSIMock.InduceSetCHAPError = false
 	GOISCSIMock.InduceDeleteNodeError = false
 }
 
@@ -493,6 +494,25 @@ func TestMockCreateOrUpdateNodeError(t *testing.T) {
 		return
 	}
 }
+
+func TestMockSetCHAPCredentials(t *testing.T) {
+	reset()
+	c := NewMockISCSI(map[string]string{})
+	// check with induced error
+	GOISCSIMock.InduceSetCHAPError = true
+	username := "username"
+	chapSecret := "secret"
+	err := c.SetCHAPCredentials(ISCSITarget{}, username, chapSecret)
+	if err == nil {
+		t.Error("Expected an induced error")
+		return
+	}
+	if !strings.Contains(err.Error(), "induced") {
+		t.Error("Expected an induced error")
+		return
+	}
+}
+
 
 func TestMockDeleteNode(t *testing.T) {
 	reset()

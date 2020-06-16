@@ -29,6 +29,7 @@ var (
 		InduceGetNodesError           bool
 		InduceCreateOrUpdateNodeError bool
 		InduceDeleteNodeError         bool
+		InduceSetCHAPError            bool
 	}
 )
 
@@ -178,6 +179,9 @@ func (iscsi *MockISCSI) newNode(target ISCSITarget, options map[string]string) e
 	if GOISCSIMock.InduceCreateOrUpdateNodeError {
 		return errors.New("newNode induced error")
 	}
+	if GOISCSIMock.InduceSetCHAPError {
+		return errors.New("set CHAP induced error")
+	}
 	return nil
 }
 
@@ -234,4 +238,12 @@ func (iscsi *MockISCSI) CreateOrUpdateNode(target ISCSITarget, options map[strin
 // DeleteNode delete iSCSI node from iscsid database
 func (iscsi *MockISCSI) DeleteNode(target ISCSITarget) error {
 	return iscsi.deleteNode(target)
+}
+
+func (iscsi *MockISCSI) SetCHAPCredentials(target ISCSITarget, username, password string) error {
+	options := make(map[string]string)
+	options["node.session.auth.authmethod"] = "CHAP"
+	options["node.session.auth.username"] = username
+	options["node.session.auth.password"] = password
+	return iscsi.newNode(target, options)
 }
