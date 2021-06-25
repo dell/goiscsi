@@ -3,7 +3,7 @@ A portable Go module for iscsi related operations such as discovery and login
 
 ## Features
 The following features are supported:
-* Discover iSCSI targets provided by a specific portal, optionally log into eacj target
+* Discover iSCSI targets provided by a specific portal, optionally log into each target
 * Discover the iSCSI Initiators defined on the local system
 * Log into a specific portal/target
 * Log out of a specific portal/target
