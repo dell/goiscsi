@@ -237,7 +237,7 @@ func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
 	return nil
 }
 
-// PerformRescan will will rescan targets known to current sessions
+// PerformRescan will rescan targets known to current sessions
 func (iscsi *LinuxISCSI) PerformRescan() error {
 	return iscsi.performRescan()
 }
@@ -253,7 +253,7 @@ func (iscsi *LinuxISCSI) performRescan() error {
 	return nil
 }
 
-// Query information about sessions
+// GetSessions will query information about sessions
 func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "session", "-P", "2", "-S"})
 	cmd := exec.Command(exe[0], exe[1:]...)
@@ -267,7 +267,7 @@ func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
 	return iscsi.sessionParser.Parse(output), nil
 }
 
-// Query information about nodes
+// GetNodes will query information about nodes
 func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-o", "show"})
 	cmd := exec.Command(exe[0], exe[1:]...)
@@ -281,7 +281,7 @@ func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
 	return iscsi.nodeParser.Parse(output), nil
 }
 
-//
+// SetCHAPCredentials will set CHAP credentials
 func (iscsi *LinuxISCSI) SetCHAPCredentials(target ISCSITarget, username, password string) error {
 	options := make(map[string]string)
 	options["node.session.auth.authmethod"] = "CHAP"

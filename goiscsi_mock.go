@@ -220,12 +220,12 @@ func (iscsi *MockISCSI) PerformRescan() error {
 	return iscsi.performRescan()
 }
 
-// Query iSCSI session info
+// GetSessions will query iSCSI session info
 func (iscsi *MockISCSI) GetSessions() ([]ISCSISession, error) {
 	return iscsi.getSessions()
 }
 
-// Query iSCSI session info
+// GetNodes will query iSCSI session info
 func (iscsi *MockISCSI) GetNodes() ([]ISCSINode, error) {
 	return iscsi.getNodes()
 }
@@ -240,6 +240,7 @@ func (iscsi *MockISCSI) DeleteNode(target ISCSITarget) error {
 	return iscsi.deleteNode(target)
 }
 
+// SetCHAPCredentials will set CHAP credentials
 func (iscsi *MockISCSI) SetCHAPCredentials(target ISCSITarget, username, password string) error {
 	options := make(map[string]string)
 	options["node.session.auth.authmethod"] = "CHAP"

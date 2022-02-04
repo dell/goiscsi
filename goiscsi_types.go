@@ -7,8 +7,13 @@ type ISCSITarget struct {
 	Target   string
 }
 
+// ISCSISessionState holds iscsi session state
 type ISCSISessionState string
+
+// ISCSIConnectionState holds iscsi connection state
 type ISCSIConnectionState string
+
+// ISCSITransportName holds iscsi transport name
 type ISCSITransportName string
 
 const (
@@ -44,7 +49,7 @@ type ISCSISession struct {
 	PasswordIn           string
 }
 
-// ISCSISession defines an iSCSI node info
+// ISCSINode defines an iSCSI node info
 type ISCSINode struct {
 	Target string
 	Portal string
