@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package goiscsi
@@ -512,7 +513,6 @@ func TestMockSetCHAPCredentials(t *testing.T) {
 		return
 	}
 }
-
 
 func TestMockDeleteNode(t *testing.T) {
 	reset()
