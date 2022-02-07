@@ -16,21 +16,22 @@ type ISCSIConnectionState string
 // ISCSITransportName holds iscsi transport name
 type ISCSITransportName string
 
+// ISCSI session and connection states
 const (
-	ISCSISessionState_LOGGED_IN ISCSISessionState = "LOGGED_IN"
-	ISCSISessionState_FAILED    ISCSISessionState = "FAILED"
-	ISCSISessionState_FREE      ISCSISessionState = "FREE"
+	ISCSISessionStateLOGGEDIN ISCSISessionState = "LOGGED_IN"
+	ISCSISessionStateFAILED   ISCSISessionState = "FAILED"
+	ISCSISessionStateFREE     ISCSISessionState = "FREE"
 
-	ISCSIConnectionState_FREE             ISCSIConnectionState = "FREE"
-	ISCSIConnectionState_TRANSPORT_WAIT   ISCSIConnectionState = "TRANSPORT WAIT"
-	ISCSIConnectionState_IN_LOGIN         ISCSIConnectionState = "IN LOGIN"
-	ISCSIConnectionState_LOGGED_IN        ISCSIConnectionState = "LOGGED IN"
-	ISCSIConnectionState_IN_LOGOUT        ISCSIConnectionState = "IN LOGOUT"
-	ISCSIConnectionState_LOGOUT_REQUESTED ISCSIConnectionState = "LOGOUT REQUESTED"
-	ISCSIConnectionState_CLEANUP_WAIT     ISCSIConnectionState = "CLEANUP WAIT"
+	ISCSIConnectionStateFREE            ISCSIConnectionState = "FREE"
+	ISCSIConnectionStateTRANSPORTWAIT   ISCSIConnectionState = "TRANSPORT WAIT"
+	ISCSIConnectionStateINLOGIN         ISCSIConnectionState = "IN LOGIN"
+	ISCSIConnectionStateLOGGEDIN        ISCSIConnectionState = "LOGGED IN"
+	ISCSIConnectionStateINLOGOUT        ISCSIConnectionState = "IN LOGOUT"
+	ISCSIConnectionStateLOGOUTREQUESTED ISCSIConnectionState = "LOGOUT REQUESTED"
+	ISCSIConnectionStateCLEANUPWAIT     ISCSIConnectionState = "CLEANUP WAIT"
 
-	ISCSITransportName_TCP  ISCSITransportName = "tcp"
-	ISCSITransportName_ISER ISCSITransportName = "iser"
+	ISCSITransportNameTCP  ISCSITransportName = "tcp"
+	ISCSITransportNameISER ISCSITransportName = "iser"
 )
 
 // ISCSISession defines an iSCSI session info
