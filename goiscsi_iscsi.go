@@ -99,7 +99,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	// log into the target if asked
 	if login {
 		for _, t := range targets {
-			iscsi.PerformLogin(t)
+			_ = iscsi.PerformLogin(t)
 		}
 	}
 
