@@ -144,9 +144,9 @@ func (iscsi *MockISCSI) getSessions() ([]ISCSISession, error) {
 		session.Target = fmt.Sprintf("iqn.2015-10.com.dell:dellemc-foobar-123-a-7ceb34a%d", idx)
 		session.Portal = fmt.Sprintf("192.168.1.%d", idx)
 		session.IfaceInitiatorname = "iqn.1993-08.com.mock:01:00000000" + init
-		session.IfaceTransport = ISCSITransportNameTCP
-		session.ISCSIConnectionState = ISCSIConnectionStateINLOGIN
-		session.ISCSISessionState = ISCSISessionStateLOGGEDIN
+		session.IfaceTransport = ISCSITransportName_TCP
+		session.ISCSIConnectionState = ISCSIConnectionState_IN_LOGIN
+		session.ISCSISessionState = ISCSISessionState_LOGGED_IN
 		session.IfaceIPaddress = "192.168.1.10"
 		sessions = append(sessions, session)
 	}
