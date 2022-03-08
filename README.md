@@ -3,7 +3,7 @@ A portable Go module for iscsi related operations such as discovery and login
 
 ## Features
 The following features are supported:
-* Discover iSCSI targets provided by a specific portal, optionally log into eacj target
+* Discover iSCSI targets provided by a specific portal, optionally log into each target
 * Discover the iSCSI Initiators defined on the local system
 * Log into a specific portal/target
 * Log out of a specific portal/target
@@ -60,13 +60,10 @@ When instantiating a Linux implementation via `goiscsi.NewLinuxISCSI` the follow
 #### MockISCSI
 When instantiating a mock implementation via `goiscsi.NewMockISCSI`, the follwoing options are available:
 
-| Key                | Meaning                                                                                 |
-|--------------------|-----------------------------------------------------------------------------------------|
-| numberOfInitiators | Defines the number of initiators that will be returned via the `GetInitiators` method.  |
-|                    | Default is "1"                                                                          |
-|--------------------|-----------------------------------------------------------------------------------------|
-| numberOfTargets    | Defines the number of targets that will be returned via the `DiscoverTargets` method.   |
-|                    | Default is "1"                                                                          |
+| Key                | Meaning                                                                                                   |
+|--------------------|-----------------------------------------------------------------------------------------------------------|
+| numberOfInitiators | Defines the number of initiators that will be returned via the `GetInitiators` method.<br/>Default is "1" |
+| numberOfTargets    | Defines the number of targets that will be returned via the `DiscoverTargets` method.<br/>Default is "1"  |                                                                           
 
 ## Usage examples
 The following example will instantiate a Linux based iSCSI client and Discover the targets exposed via the portal at `address`
