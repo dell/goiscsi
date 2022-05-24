@@ -68,6 +68,13 @@ func (iscsi *LinuxISCSI) DiscoverTargets(address string, login bool) ([]ISCSITar
 func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITarget, error) {
 	// iSCSI discovery is done via the iscsiadm cli
 	// iscsiadm -m discovery -t st --portal <target>
+
+	//validate for valid address
+	err := validateIPAddress(address)
+	if err != nil {
+		fmt.Printf("\nError invalid address %s: %v", address, err)
+		return []ISCSITarget{}, err
+	}
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "discovery", "-t", "st", "--portal", address})
 	cmd := exec.Command(exe[0], exe[1:]...)
 
@@ -166,10 +173,23 @@ func (iscsi *LinuxISCSI) PerformLogin(target ISCSITarget) error {
 func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 	// iSCSI login is done via the iscsiadm cli
 	// iscsiadm -m node -T <target> --portal <address> -l
+
+	err := validateIPAddress(target.Portal)
+	if err != nil {
+		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		return err
+	}
+
+	err = validateIQN(target.Target)
+	if err != nil {
+		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		return err
+	}
+
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-T", target.Target, "--portal", target.Portal, "-l"})
 	cmd := exec.Command(exe[0], exe[1:]...)
 
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -206,10 +226,22 @@ func (iscsi *LinuxISCSI) PerformLogout(target ISCSITarget) error {
 func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
 	// iSCSI login is done via the iscsiadm cli
 	// iscsiadm -m node -T <target> --portal <address> -l
+	err := validateIPAddress(target.Portal)
+	if err != nil {
+		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		return err
+	}
+
+	err = validateIQN(target.Target)
+	if err != nil {
+		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		return err
+	}
+
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-T", target.Target, "--portal", target.Portal, "--logout"})
 	cmd := exec.Command(exe[0], exe[1:]...)
 
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// iscsiadm exited with an exit code != 0
@@ -292,13 +324,24 @@ func (iscsi *LinuxISCSI) SetCHAPCredentials(target ISCSITarget, username, passwo
 
 // CreateOrUpdateNode creates new or update existing iSCSI node in iscsid dm
 func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
+	err := validateIPAddress(target.Portal)
+	if err != nil {
+		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		return err
+	}
+
+	err = validateIQN(target.Target)
+	if err != nil {
+		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		return err
+	}
 	baseCmd := iscsi.buildISCSICommand(
 		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target})
 
 	var commands [][]string
 
 	cmd := exec.Command(baseCmd[0], baseCmd[1:]...)
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		if !isNoObjsExitCode(err) {
 			return err
@@ -323,10 +366,21 @@ func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[stri
 
 // DeleteNode delete iSCSI node from iscsid database
 func (iscsi *LinuxISCSI) DeleteNode(target ISCSITarget) error {
+	err := validateIPAddress(target.Portal)
+	if err != nil {
+		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		return err
+	}
+
+	err = validateIQN(target.Target)
+	if err != nil {
+		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		return err
+	}
 	exe := iscsi.buildISCSICommand(
 		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target, "-o", "delete"})
 	cmd := exec.Command(exe[0], exe[1:]...)
-	_, err := cmd.Output()
+	_, err = cmd.Output()
 	if err != nil {
 		if isNoObjsExitCode(err) {
 			return nil

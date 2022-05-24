@@ -23,6 +23,7 @@ func reset() {
 	if t := os.Getenv("GOISCSI_TARGET"); t != "" {
 		testTarget = t
 	}
+
 	GOISCSIMock.InduceDiscoveryError = false
 	GOISCSIMock.InduceInitiatorError = false
 	GOISCSIMock.InduceLoginError = false
