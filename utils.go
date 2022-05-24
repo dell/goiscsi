@@ -2,15 +2,15 @@ package goiscsi
 
 import (
 	"errors"
-	"fmt"
-	"net"
 	"regexp"
 )
 
 func validateIPAddress(ip string) error {
-	if net.ParseIP(ip) == nil {
-		fmt.Printf("IP Address: %s - Invalid\n", ip)
-		return errors.New("Invalid IP address")
+	// Regex to validate IPV4 Ex: 10.0.0.0:1111
+	const exp = `^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$`
+	r := regexp.MustCompile(exp)
+	if !r.MatchString(ip) {
+		return errors.New("Error invalid IP address")
 	}
 	return nil
 }
