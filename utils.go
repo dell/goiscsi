@@ -7,7 +7,7 @@ import (
 	"regexp"
 )
 
-func checkIPAddress(ip string) error {
+func validateIPAddress(ip string) error {
 	if net.ParseIP(ip) == nil {
 		fmt.Printf("IP Address: %s - Invalid\n", ip)
 		return errors.New("Invalid IP address")
@@ -15,8 +15,9 @@ func checkIPAddress(ip string) error {
 	return nil
 }
 
-func checkIQN(iqn string) error {
-	r := regexp.MustCompile(`iqn\.\d{4}-\d{2}\.([[:alnum:]-.]+)(:[^,;*&$|\s]+)$`)
+func validateIQN(iqn string) error {
+	const exp = `iqn\.\d{4}-\d{2}\.([[:alnum:]-.]+)(:[^,;*&$|\s]+)$`
+	r := regexp.MustCompile(exp)
 	if !r.MatchString(iqn) {
 		return errors.New("Error invalid IQN")
 	}

@@ -23,8 +23,7 @@ func reset() {
 	if t := os.Getenv("GOISCSI_TARGET"); t != "" {
 		testTarget = t
 	}
-	testPortal = "192.168.1.25"
-	testTarget = "iqn.1992-04.com.emc:600009700bcbb70e3287017400000000|"
+
 	GOISCSIMock.InduceDiscoveryError = false
 	GOISCSIMock.InduceInitiatorError = false
 	GOISCSIMock.InduceLoginError = false

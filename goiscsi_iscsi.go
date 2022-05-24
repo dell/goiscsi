@@ -70,7 +70,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	// iscsiadm -m discovery -t st --portal <target>
 
 	//validate for valid address
-	err := checkIPAddress(address)
+	err := validateIPAddress(address)
 	if err != nil {
 		fmt.Printf("\nError invalid address %s: %v", address, err)
 		return []ISCSITarget{}, err
@@ -174,13 +174,13 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 	// iSCSI login is done via the iscsiadm cli
 	// iscsiadm -m node -T <target> --portal <address> -l
 
-	err := checkIPAddress(target.Portal)
+	err := validateIPAddress(target.Portal)
 	if err != nil {
 		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
 		return err
 	}
 
-	err = checkIQN(target.Target)
+	err = validateIQN(target.Target)
 	if err != nil {
 		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
 		return err
@@ -226,13 +226,13 @@ func (iscsi *LinuxISCSI) PerformLogout(target ISCSITarget) error {
 func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
 	// iSCSI login is done via the iscsiadm cli
 	// iscsiadm -m node -T <target> --portal <address> -l
-	err := checkIPAddress(target.Portal)
+	err := validateIPAddress(target.Portal)
 	if err != nil {
 		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
 		return err
 	}
 
-	err = checkIQN(target.Target)
+	err = validateIQN(target.Target)
 	if err != nil {
 		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
 		return err
@@ -324,13 +324,13 @@ func (iscsi *LinuxISCSI) SetCHAPCredentials(target ISCSITarget, username, passwo
 
 // CreateOrUpdateNode creates new or update existing iSCSI node in iscsid dm
 func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
-	err := checkIPAddress(target.Portal)
+	err := validateIPAddress(target.Portal)
 	if err != nil {
 		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
 		return err
 	}
 
-	err = checkIQN(target.Target)
+	err = validateIQN(target.Target)
 	if err != nil {
 		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
 		return err
@@ -366,13 +366,13 @@ func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[stri
 
 // DeleteNode delete iSCSI node from iscsid database
 func (iscsi *LinuxISCSI) DeleteNode(target ISCSITarget) error {
-	err := checkIPAddress(target.Portal)
+	err := validateIPAddress(target.Portal)
 	if err != nil {
 		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
 		return err
 	}
 
-	err = checkIQN(target.Target)
+	err = validateIQN(target.Target)
 	if err != nil {
 		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
 		return err
