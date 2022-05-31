@@ -2,8 +2,10 @@ package goiscsi
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
@@ -145,14 +147,12 @@ func (iscsi *LinuxISCSI) getInitiators(filename string) ([]string, error) {
 		}
 
 		// get the contents of the initiator config file
-		cmd := exec.Command("cat", init)
-
-		out, err := cmd.Output()
+		cmd, err := ioutil.ReadFile(filepath.Clean(init))
 		if err != nil {
 			fmt.Printf("Error gathering initiator names: %v", err)
 			return nil, err
 		}
-		lines := strings.Split(string(out), "\n")
+		lines := strings.Split(string(cmd), "\n")
 		for _, l := range lines {
 			// remove all whitespace to catch different formatting
 			l = strings.Join(strings.Fields(l), "")
