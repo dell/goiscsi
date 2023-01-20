@@ -27,6 +27,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -89,6 +90,17 @@ func TestDiscoverTargets(t *testing.T) {
 	}
 }
 
+func TestDiscoverUnreachableTargets(t *testing.T) {
+	c := NewLinuxISCSI(map[string]string{})
+	timeBeforeTestStart := time.Now()
+	_, err := c.DiscoverTargets("127.0.0.1", false)
+	timeAftertest := time.Now()
+	// response should come within Timeout + 2 seconds
+	if err != nil && (timeAftertest.Sub(timeBeforeTestStart).Seconds() > Timeout+2) {
+		t.Error(err.Error())
+	}
+}
+
 func TestLoginLogoutTargets(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
@@ -131,6 +143,23 @@ func TestLoginLoginLogoutTargets(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 		return
+	}
+}
+
+func TestLoginUnreachableTargets(t *testing.T) {
+	reset()
+	c := NewLinuxISCSI(map[string]string{})
+	tgt := ISCSITarget{
+		Portal:   "127.0.0.1",
+		GroupTag: "0",
+		Target:   "iqn.1991-05.com.emc:dummyExample",
+	}
+	timeBeforeTestStart := time.Now()
+	err := c.PerformLogin(tgt)
+	timeAftertest := time.Now()
+	// response should come within Timeout + 2 seconds
+	if err != nil && (timeAftertest.Sub(timeBeforeTestStart).Seconds() > Timeout+2) {
+		t.Error(err.Error())
 	}
 }
 

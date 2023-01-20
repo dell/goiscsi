@@ -19,6 +19,7 @@
 package goiscsi
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -26,6 +27,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const (
@@ -37,6 +39,8 @@ const (
 	// ISCSINoObjsFoundExitCode exit code indicates that no records/targets/sessions/portals
 	// found to execute operation on
 	iSCSINoObjsFoundExitCode = 21
+	// Timeout for iscsiadm command to execute
+	Timeout = 30
 )
 
 // LinuxISCSI provides many iSCSI-specific functions.
@@ -96,7 +100,10 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 		return []ISCSITarget{}, err
 	}
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "discovery", "-t", "st", "--portal", address})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -205,7 +212,10 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 	}
 
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-T", target.Target, "--portal", target.Portal, "-l"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...)
 
 	_, err = cmd.Output()
 
