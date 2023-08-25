@@ -23,7 +23,6 @@ package goiscsi
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -594,7 +593,7 @@ func TestSessionParserParse(t *testing.T) {
 	fileErrMsg := "can't read file with test data"
 
 	// test valid data
-	data, err := ioutil.ReadFile("testdata/session_info_valid")
+	data, err := os.ReadFile("testdata/session_info_valid")
 	if err != nil {
 		t.Error(fileErrMsg)
 	}
@@ -633,7 +632,7 @@ func TestSessionParserParse(t *testing.T) {
 	}
 
 	// test invalid data parsing
-	data, err = ioutil.ReadFile("testdata/session_info_invalid")
+	data, err = os.ReadFile("testdata/session_info_invalid")
 	if err != nil {
 		t.Error(fileErrMsg)
 	}
@@ -648,7 +647,7 @@ func TestNodeParserParse(t *testing.T) {
 	fileErrMsg := "can't read file with test data"
 
 	// test valid data
-	data, err := ioutil.ReadFile("testdata/node_info_valid")
+	data, err := os.ReadFile("testdata/node_info_valid")
 	if err != nil {
 		t.Error(fileErrMsg)
 	}
@@ -670,7 +669,7 @@ func TestNodeParserParse(t *testing.T) {
 	}
 
 	// test invalid data parsing
-	data, err = ioutil.ReadFile("testdata/node_info_invalid")
+	data, err = os.ReadFile("testdata/node_info_invalid")
 	if err != nil {
 		t.Error(fileErrMsg)
 	}

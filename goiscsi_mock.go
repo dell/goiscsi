@@ -58,8 +58,7 @@ type MockISCSI struct {
 
 // NewMockISCSI returns an mock ISCSI client
 func NewMockISCSI(opts map[string]string) *MockISCSI {
-	var iscsi MockISCSI
-	iscsi = MockISCSI{
+	var iscsi = MockISCSI{
 		ISCSIType: ISCSIType{
 			mock:    true,
 			options: opts,

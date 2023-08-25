@@ -41,7 +41,7 @@ func validateIPAddress(ip string) error {
 	}
 	// Either valid IP/portal address should be given
 	if !isValidIP && !isValidPortal {
-		return errors.New("Error invalid IP or portal address")
+		return errors.New("error invalid IP or portal address")
 	}
 	return nil
 }
@@ -50,7 +50,7 @@ func validateIQN(iqn string) error {
 	const exp = `iqn\.\d{4}-\d{2}\.([[:alnum:]-.]+)(:[^,;*&$|\s]+)$`
 	r := regexp.MustCompile(exp)
 	if !r.MatchString(iqn) {
-		return errors.New("Error invalid IQN")
+		return errors.New("error invalid IQN")
 	}
 	return nil
 }
