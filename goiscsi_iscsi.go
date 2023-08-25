@@ -21,7 +21,6 @@ package goiscsi
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -52,8 +51,7 @@ type LinuxISCSI struct {
 
 // NewLinuxISCSI returns an LinuxISCSI client
 func NewLinuxISCSI(opts map[string]string) *LinuxISCSI {
-	var iscsi LinuxISCSI
-	iscsi = LinuxISCSI{
+	var iscsi = LinuxISCSI{
 		ISCSIType: ISCSIType{
 			mock:    false,
 			options: opts,
@@ -78,9 +76,7 @@ func (iscsi *LinuxISCSI) buildISCSICommand(cmd []string) []string {
 		return cmd
 	}
 	command := []string{"chroot", iscsi.getChrootDirectory()}
-	for _, s := range cmd {
-		command = append(command, s)
-	}
+	command = append(command, cmd...)
 	return command
 }
 
@@ -172,7 +168,7 @@ func (iscsi *LinuxISCSI) getInitiators(filename string) ([]string, error) {
 		}
 
 		// get the contents of the initiator config file
-		cmd, err := ioutil.ReadFile(filepath.Clean(init))
+		cmd, err := os.ReadFile(filepath.Clean(init))
 		if err != nil {
 			fmt.Printf("Error gathering initiator names: %v", err)
 			return nil, err
