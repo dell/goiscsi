@@ -178,9 +178,10 @@ func TestLogoutLogoutTargets(t *testing.T) {
 		return
 	}
 }
+
 func TestGetInitiators(t *testing.T) {
 	reset()
-	var testdata = []struct {
+	testdata := []struct {
 		filename string
 		count    int
 	}{
@@ -201,7 +202,6 @@ func TestGetInitiators(t *testing.T) {
 			t.Errorf("Expected %d initiators in %s, but got %d", tt.count, tt.filename, len(initiators))
 		}
 	}
-
 }
 
 func TestPerformRescan(t *testing.T) {
@@ -266,7 +266,8 @@ func TestCreateOrUpdateNode(t *testing.T) {
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
 		Portal: "foo",
-		Target: "bar"}
+		Target: "bar",
+	}
 	opt := make(map[string]string)
 	err := c.CreateOrUpdateNode(tgt, opt)
 	if err != nil {
@@ -279,7 +280,8 @@ func TestDeleteNode(t *testing.T) {
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
 		Portal: "foo",
-		Target: "bar"}
+		Target: "bar",
+	}
 	err := c.DeleteNode(tgt)
 	if err != nil {
 		t.Error(err.Error())
@@ -293,7 +295,7 @@ func TestMockDiscoverTargets(t *testing.T) {
 	expected := 5
 	opts[MockNumberOfTargets] = fmt.Sprintf("%d", expected)
 	c = NewMockISCSI(opts)
-	//c = mock
+	// c = mock
 	targets, err := c.DiscoverTargets("1.1.1.1", true)
 	if err != nil {
 		t.Error(err.Error())

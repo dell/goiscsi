@@ -51,7 +51,7 @@ type LinuxISCSI struct {
 
 // NewLinuxISCSI returns an LinuxISCSI client
 func NewLinuxISCSI(opts map[string]string) *LinuxISCSI {
-	var iscsi = LinuxISCSI{
+	iscsi := LinuxISCSI{
 		ISCSIType: ISCSIType{
 			mock:    false,
 			options: opts,
@@ -89,7 +89,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	// iSCSI discovery is done via the iscsiadm cli
 	// iscsiadm -m discovery -t st --portal <target>
 
-	//validate for valid address
+	// validate for valid address
 	err := validateIPAddress(address)
 	if err != nil {
 		fmt.Printf("\nError invalid address %s: %v", address, err)
@@ -142,7 +142,6 @@ func (iscsi *LinuxISCSI) GetInitiators(filename string) ([]string, error) {
 }
 
 func (iscsi *LinuxISCSI) getInitiators(filename string) ([]string, error) {
-
 	// a slice of filename, which might exist and define the iSCSI initiators
 	initiatorConfig := []string{}
 	iqns := []string{}
