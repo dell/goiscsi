@@ -7,13 +7,19 @@
 # be requested for review when someone opens a pull request.
 # order is alphabetical for easier maintenance.
 #
+# Adam Ginna (adamginna-dell)
 # Adarsh Kumar Yadav (adarsh-dell)
 # Akshay Saini (AkshaySainiDell)
 # Alexander Hoppe (hoppea2)
 # Bahubali Jain (bpjain2004)
+# Bartosz Ciesielczyk (cbartoszDell)
+# Bogdan Novikov (bogdanNovikovDell)
 # Florian Coulombel (coulof)
 # Francis Nijay (francis-nijay)
 # Harish P (harishp8889)
+# Leonard Ulman (Leonard-Dell)
+# Marek Suski (mareksuski-dell)
+# Małgorzata Dutka (mdutka-dell)
 # Pooja Prasannakumar (kumarp20)
 # Prsanna Muthukumaraswamy (prablr79)
 # Satya Narayana (satyakonduri)
@@ -23,5 +29,4 @@
  
 
 # for all files:
-* @adarsh-dell @AkshaySainiDell @hoppea2 @bpjain2004 @coulof @francis-nijay @harishp8889 @kumarp20 @prablr79 @satyakonduri @suryagupta4 @tdawe @kenivi1
-
+* @adarsh-dell @AkshaySainiDell @hoppea2 @bpjain2004 @coulof @francis-nijay @harishp8889 @kumarp20 @prablr79 @satyakonduri @suryagupta4 @tdawe @kenivi1 @adamginna-dell @cbartoszDell @bogdanNovikovDell @Leonard-Dell @mareksuski-dell @mdutka-dell
