@@ -35,21 +35,19 @@ const (
 	MockNumberOfNodes = "numberOfNode"
 )
 
-var (
-	// GOISCSIMock is a struct controlling induced errors
-	GOISCSIMock struct {
-		InduceDiscoveryError          bool
-		InduceInitiatorError          bool
-		InduceLoginError              bool
-		InduceLogoutError             bool
-		InduceRescanError             bool
-		InduceGetSessionsError        bool
-		InduceGetNodesError           bool
-		InduceCreateOrUpdateNodeError bool
-		InduceDeleteNodeError         bool
-		InduceSetCHAPError            bool
-	}
-)
+// GOISCSIMock is a struct controlling induced errors
+var GOISCSIMock struct {
+	InduceDiscoveryError          bool
+	InduceInitiatorError          bool
+	InduceLoginError              bool
+	InduceLogoutError             bool
+	InduceRescanError             bool
+	InduceGetSessionsError        bool
+	InduceGetNodesError           bool
+	InduceCreateOrUpdateNodeError bool
+	InduceDeleteNodeError         bool
+	InduceSetCHAPError            bool
+}
 
 // MockISCSI provides a mock implementation of an iscsi client
 type MockISCSI struct {
@@ -58,7 +56,7 @@ type MockISCSI struct {
 
 // NewMockISCSI returns an mock ISCSI client
 func NewMockISCSI(opts map[string]string) *MockISCSI {
-	var iscsi = MockISCSI{
+	iscsi := MockISCSI{
 		ISCSIType: ISCSIType{
 			mock:    true,
 			options: opts,
@@ -73,7 +71,7 @@ func getOptionAsInt(opts map[string]string, key string) int64 {
 	return v
 }
 
-func (iscsi *MockISCSI) discoverTargets(address string, login bool) ([]ISCSITarget, error) {
+func (iscsi *MockISCSI) discoverTargets(address string, _ bool) ([]ISCSITarget, error) {
 	if GOISCSIMock.InduceDiscoveryError {
 		return []ISCSITarget{}, errors.New("discoverTargets induced error")
 	}
@@ -97,8 +95,7 @@ func (iscsi *MockISCSI) discoverTargets(address string, login bool) ([]ISCSITarg
 	return mockedTargets, nil
 }
 
-func (iscsi *MockISCSI) getInitiators(filename string) ([]string, error) {
-
+func (iscsi *MockISCSI) getInitiators(_ string) ([]string, error) {
 	if GOISCSIMock.InduceInitiatorError {
 		return []string{}, errors.New("getInitiators induced error")
 	}
@@ -117,8 +114,7 @@ func (iscsi *MockISCSI) getInitiators(filename string) ([]string, error) {
 	return mockedInitiators, nil
 }
 
-func (iscsi *MockISCSI) performLogin(target ISCSITarget) error {
-
+func (iscsi *MockISCSI) performLogin(_ ISCSITarget) error {
 	if GOISCSIMock.InduceLoginError {
 		return errors.New("iSCSI Login induced error")
 	}
@@ -126,8 +122,7 @@ func (iscsi *MockISCSI) performLogin(target ISCSITarget) error {
 	return nil
 }
 
-func (iscsi *MockISCSI) performLogout(target ISCSITarget) error {
-
+func (iscsi *MockISCSI) performLogout(_ ISCSITarget) error {
 	if GOISCSIMock.InduceLogoutError {
 		return errors.New("iSCSI Logout induced error")
 	}
@@ -136,7 +131,6 @@ func (iscsi *MockISCSI) performLogout(target ISCSITarget) error {
 }
 
 func (iscsi *MockISCSI) performRescan() error {
-
 	if GOISCSIMock.InduceRescanError {
 		return errors.New("iSCSI Rescan induced error")
 	}
@@ -145,7 +139,6 @@ func (iscsi *MockISCSI) performRescan() error {
 }
 
 func (iscsi *MockISCSI) getSessions() ([]ISCSISession, error) {
-
 	if GOISCSIMock.InduceGetSessionsError {
 		return []ISCSISession{}, errors.New("getSessions induced error")
 	}
@@ -171,7 +164,6 @@ func (iscsi *MockISCSI) getSessions() ([]ISCSISession, error) {
 }
 
 func (iscsi *MockISCSI) getNodes() ([]ISCSINode, error) {
-
 	if GOISCSIMock.InduceGetNodesError {
 		return []ISCSINode{}, errors.New("getSessions induced error")
 	}
@@ -192,7 +184,7 @@ func (iscsi *MockISCSI) getNodes() ([]ISCSINode, error) {
 	return nodes, nil
 }
 
-func (iscsi *MockISCSI) newNode(target ISCSITarget, options map[string]string) error {
+func (iscsi *MockISCSI) newNode(_ ISCSITarget, _ map[string]string) error {
 	if GOISCSIMock.InduceCreateOrUpdateNodeError {
 		return errors.New("newNode induced error")
 	}
@@ -202,7 +194,7 @@ func (iscsi *MockISCSI) newNode(target ISCSITarget, options map[string]string) e
 	return nil
 }
 
-func (iscsi *MockISCSI) deleteNode(target ISCSITarget) error {
+func (iscsi *MockISCSI) deleteNode(_ ISCSITarget) error {
 	if GOISCSIMock.InduceDeleteNodeError {
 		return errors.New("newNode induced error")
 	}
