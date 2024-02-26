@@ -51,7 +51,7 @@ type LinuxISCSI struct {
 
 // NewLinuxISCSI returns an LinuxISCSI client
 func NewLinuxISCSI(opts map[string]string) *LinuxISCSI {
-	var iscsi = LinuxISCSI{
+	iscsi := LinuxISCSI{
 		ISCSIType: ISCSIType{
 			mock:    false,
 			options: opts,
@@ -89,7 +89,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	// iSCSI discovery is done via the iscsiadm cli
 	// iscsiadm -m discovery -t st --portal <target>
 
-	//validate for valid address
+	// validate for valid address
 	err := validateIPAddress(address)
 	if err != nil {
 		fmt.Printf("\nError invalid address %s: %v", address, err)
@@ -99,7 +99,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...)
+	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...) // #nosec G204
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -142,7 +142,6 @@ func (iscsi *LinuxISCSI) GetInitiators(filename string) ([]string, error) {
 }
 
 func (iscsi *LinuxISCSI) getInitiators(filename string) ([]string, error) {
-
 	// a slice of filename, which might exist and define the iSCSI initiators
 	initiatorConfig := []string{}
 	iqns := []string{}
@@ -211,10 +210,9 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...)
+	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...) // #nosec G204
 
 	_, err = cmd.Output()
-
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// iscsiadm exited with an exit code != 0
@@ -263,7 +261,7 @@ func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
 	}
 
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-T", target.Target, "--portal", target.Portal, "--logout"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 
 	_, err = cmd.Output()
 	if err != nil {
@@ -300,7 +298,7 @@ func (iscsi *LinuxISCSI) PerformRescan() error {
 
 func (iscsi *LinuxISCSI) performRescan() error {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "--rescan"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 
 	_, err := cmd.Output()
 	if err != nil {
@@ -312,7 +310,7 @@ func (iscsi *LinuxISCSI) performRescan() error {
 // GetSessions will query information about sessions
 func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "session", "-P", "2", "-S"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 	output, err := cmd.Output()
 	if err != nil {
 		if isNoObjsExitCode(err) {
@@ -326,7 +324,7 @@ func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
 // GetNodes will query information about nodes
 func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-o", "show"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 	output, err := cmd.Output()
 	if err != nil {
 		if isNoObjsExitCode(err) {
@@ -364,7 +362,7 @@ func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[stri
 
 	var commands [][]string
 
-	cmd := exec.Command(baseCmd[0], baseCmd[1:]...)
+	cmd := exec.Command(baseCmd[0], baseCmd[1:]...) // #nosec G204
 	_, err = cmd.Output()
 	if err != nil {
 		if !isNoObjsExitCode(err) {
@@ -379,7 +377,7 @@ func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[stri
 		commands = append(commands, c)
 	}
 	for _, command := range commands {
-		cmd := exec.Command(command[0], command[1:]...)
+		cmd := exec.Command(command[0], command[1:]...) // #nosec G204
 		_, err := cmd.Output()
 		if err != nil {
 			return err
@@ -403,7 +401,7 @@ func (iscsi *LinuxISCSI) DeleteNode(target ISCSITarget) error {
 	}
 	exe := iscsi.buildISCSICommand(
 		[]string{"iscsiadm", "-m", "node", "-p", target.Portal, "-T", target.Target, "-o", "delete"})
-	cmd := exec.Command(exe[0], exe[1:]...)
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 	_, err = cmd.Output()
 	if err != nil {
 		if isNoObjsExitCode(err) {
