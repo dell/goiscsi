@@ -213,7 +213,6 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 	cmd := exec.CommandContext(ctx, exe[0], exe[1:]...) // #nosec G204
 
 	_, err = cmd.Output()
-
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// iscsiadm exited with an exit code != 0
