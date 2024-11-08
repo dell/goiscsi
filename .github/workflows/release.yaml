@@ -2,7 +2,7 @@ name: Release GoiSCSI
 # Invocable as a reusable workflow
 # Can be manually triggered
 on:
-  workflow_call: 
+  workflow_call:
   workflow_dispatch:
     inputs:
       version:
