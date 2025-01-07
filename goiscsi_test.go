@@ -30,8 +30,8 @@ import (
 )
 
 var (
-	testPortal = "p"
-	testTarget = "t"
+	testPortal = "1.2.3.4"
+	testTarget = "5.6.7.8"
 )
 
 func reset() {
