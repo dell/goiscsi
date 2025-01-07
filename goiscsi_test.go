@@ -31,7 +31,7 @@ import (
 
 var (
 	testPortal = "1.2.3.4"
-	testTarget = "5.6.7.8"
+	testTarget = "iqn.1991-05.com.emc:dummyExample"
 )
 
 func reset() {
