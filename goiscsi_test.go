@@ -266,7 +266,7 @@ func TestCreateOrUpdateNode(t *testing.T) {
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
 		Portal: "10.0.0.0",
-		Target: "bar",
+		Target: "iqn.1991-05.com.emc:dummyExample",
 	}
 	opt := make(map[string]string)
 	err := c.CreateOrUpdateNode(tgt, opt)
@@ -280,7 +280,7 @@ func TestDeleteNode(t *testing.T) {
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
 		Portal: "10.0.0.0",
-		Target: "bar",
+		Target: "iqn.1991-05.com.emc:dummyExample",
 	}
 	err := c.DeleteNode(tgt)
 	if err != nil {
