@@ -30,8 +30,8 @@ import (
 )
 
 var (
-	var testPortal = "p"
-	var testTarget = "t"
+	testPortal string = "p"
+	testTarget string = "t"
 )
 
 func reset() {
