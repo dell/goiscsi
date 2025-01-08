@@ -22,6 +22,7 @@
 package goiscsi
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -30,8 +31,8 @@ import (
 )
 
 var (
-	testPortal string
-	testTarget string
+	testPortal = "1.2.3.4"
+	testTarget = "iqn.1991-05.com.emc:dummyExample"
 )
 
 func reset() {
@@ -84,8 +85,16 @@ func TestDiscoverTargets(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
 	_, err := c.DiscoverTargets(testPortal, false)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+		return
+	}
+	expectedError = errors.New("error invalid IP or portal address")
+	_, err = c.DiscoverTargets("", false)
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+		return
 	}
 }
 
@@ -109,13 +118,14 @@ func TestLoginLogoutTargets(t *testing.T) {
 		Target:   testTarget,
 	}
 	err := c.PerformLogin(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 	err = c.PerformLogout(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 }
@@ -129,18 +139,19 @@ func TestLoginLoginLogoutTargets(t *testing.T) {
 		Target:   testTarget,
 	}
 	err := c.PerformLogin(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 	err = c.PerformLogin(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 	err = c.PerformLogout(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 }
@@ -173,8 +184,9 @@ func TestLogoutLogoutTargets(t *testing.T) {
 	// log out of the target, just in case we are logged in already
 	_ = c.PerformLogin(tgt)
 	err := c.PerformLogout(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 }
@@ -202,6 +214,11 @@ func TestGetInitiators(t *testing.T) {
 			t.Errorf("Expected %d initiators in %s, but got %d", tt.count, tt.filename, len(initiators))
 		}
 	}
+	_, err := c.GetInitiators("")
+	expectedError := errors.New("stat /etc/iscsi/initiatorname.iscsi: no such file or directory")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+	}
 }
 
 func TestPerformRescan(t *testing.T) {
@@ -213,13 +230,14 @@ func TestPerformRescan(t *testing.T) {
 		Target:   testTarget,
 	}
 	err := c.PerformLogin(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 	err = c.PerformRescan()
-	if err != nil {
-		t.Error(err.Error())
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 		return
 	}
 }
@@ -247,8 +265,9 @@ func TestGetSessions(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
 	_, err := c.GetSessions()
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 	}
 }
 
@@ -256,8 +275,9 @@ func TestGetNodes(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
 	_, err := c.GetNodes()
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 	}
 }
 
@@ -265,13 +285,14 @@ func TestCreateOrUpdateNode(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
-		Portal: "foo",
-		Target: "bar",
+		Portal: "10.0.0.0",
+		Target: "iqn.1991-05.com.emc:dummyExample",
 	}
 	opt := make(map[string]string)
 	err := c.CreateOrUpdateNode(tgt, opt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 	}
 }
 
@@ -279,12 +300,29 @@ func TestDeleteNode(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
 	tgt := ISCSITarget{
-		Portal: "foo",
-		Target: "bar",
+		Portal: "10.0.0.0",
+		Target: "iqn.1991-05.com.emc:dummyExample",
 	}
 	err := c.DeleteNode(tgt)
-	if err != nil {
-		t.Error(err.Error())
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+	}
+}
+
+func TestSetCHAPCredentials(t *testing.T) {
+	reset()
+	c := NewLinuxISCSI(map[string]string{})
+	tgt := ISCSITarget{
+		Portal: "10.0.0.0",
+		Target: "iqn.1991-05.com.emc:dummyExample",
+	}
+	username := "username"
+	chapSecret := "secret"
+	err := c.SetCHAPCredentials(tgt, username, chapSecret)
+	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
 	}
 }
 
