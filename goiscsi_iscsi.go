@@ -321,6 +321,50 @@ func (iscsi *LinuxISCSI) GetSessions() ([]ISCSISession, error) {
 	return iscsi.sessionParser.Parse(output), nil
 }
 
+// GetInterfaces returns a list of iSCSI interfaces
+func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
+	// iSCSI interfaces are returned via the iscsiadm cli
+	// iscsiadm -m iface
+	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "iface"})
+	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("\nError getting iscsi interfaces: %v", err)
+		return []ISCSIInterface{}, err
+	}
+
+	// Parse each line into an ISCSIInterface struct
+	interfaces := make([]ISCSIInterface, 0)
+	for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+		// one line of the output should look like:
+		// iface0 tcp,00:c0:dd:08:63:e8,192.168.1.100,eth0,iqn.2005-06.com.example:initiator
+		// iface_name transport_name,hardware_address,ip_address,net_ifacename,initiator_name
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+		ifaceName := parts[0]
+		rest := parts[1]
+
+		// Split the rest by commas
+		fields := strings.Split(rest, ",")
+		if len(fields) != 5 {
+			continue
+		}
+		iface := ISCSIInterface{
+			IfaceName:       ifaceName,
+			TransportName:   fields[0],
+			HardwareAddress: fields[1],
+			IPAddress:       fields[2],
+			NetIfaceName:    fields[3],
+			InitiatorName:   fields[4],
+		}
+		interfaces = append(interfaces, iface)
+	}
+
+	return interfaces, nil
+}
+
 // GetNodes will query information about nodes
 func (iscsi *LinuxISCSI) GetNodes() ([]ISCSINode, error) {
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "node", "-o", "show"})

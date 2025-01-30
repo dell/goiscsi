@@ -56,6 +56,9 @@ type ISCSIinterface interface {
 	// DeleteNode delete iSCSI node from iscsid database
 	DeleteNode(target ISCSITarget) error
 
+	// GetInterfaces returns a list of iSCSI interfaces
+	GetInterfaces() ([]ISCSIInterface, error)
+
 	// generic implementations
 	isMock() bool
 	getOptions() map[string]string
