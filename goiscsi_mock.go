@@ -249,6 +249,11 @@ func (iscsi *MockISCSI) DeleteNode(target ISCSITarget) error {
 	return iscsi.deleteNode(target)
 }
 
+// GetInterfaces returns a list of iSCSI interfaces
+func (iscsi *MockISCSI) GetInterfaces() ([]ISCSIInterface, error) {
+	return []ISCSIInterface{}, nil
+}
+
 // SetCHAPCredentials will set CHAP credentials
 func (iscsi *MockISCSI) SetCHAPCredentials(target ISCSITarget, username, password string) error {
 	options := make(map[string]string)
