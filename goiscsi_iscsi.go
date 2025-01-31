@@ -136,6 +136,12 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	return targets, nil
 }
 
+// DiscoverTargetsWithInterface runs an iSCSI discovery with intreface and returns a list of targets.
+func (iscsi *LinuxISCSI) DiscoverTargetsWithInterface(address, iface string, login bool) ([]ISCSITarget, error) {
+	// TODO: Implement the core logic for iSCSI discovery with interface.
+	return nil, nil
+}
+
 // GetInitiators returns a list of initiators on the local system.
 func (iscsi *LinuxISCSI) GetInitiators(filename string) ([]string, error) {
 	return iscsi.getInitiators(filename)
@@ -363,6 +369,11 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 	}
 
 	return interfaces, nil
+}
+
+// GetInterfaceForTargetIP returns the iSCSI interfaces for target IP
+func (iscsi *LinuxISCSI) GetInterfaceForTargetIP(address ...string) (map[string]string, error) {
+	return make(map[string]string, 0), nil
 }
 
 // GetNodes will query information about nodes
