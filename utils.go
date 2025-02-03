@@ -20,6 +20,7 @@ package goiscsi
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"regexp"
 )
@@ -53,4 +54,50 @@ func validateIQN(iqn string) error {
 		return errors.New("error invalid IQN")
 	}
 	return nil
+}
+
+func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, error) {
+	fmt.Printf("\nDEBUG ifaceName : %v", ifaceName)
+	filterredIPs := make([]string, 0)
+	iface, err := net.InterfaceByName(ifaceName)
+	if err != nil {
+		fmt.Printf("\nError could not find interface %s : %v", ifaceName, err)
+		return filterredIPs, err
+	}
+
+	addrs, err := iface.Addrs()
+	if err != nil {
+		fmt.Printf("\nError failed to get addresses of interface %s : %v", ifaceName, err)
+		return filterredIPs, err
+	}
+
+	for _, ipAddr := range ipAddress {
+		fmt.Printf("\nDEBUG ipAddr : %v", ipAddr)
+		ip := net.ParseIP(ipAddr)
+		if ip == nil {
+			fmt.Printf("\nError invalid IP address: %s", ipAddr)
+			continue
+		}
+		found := false
+		for _, addr := range addrs {
+			ifaceIP, ifaceSubnet, err := net.ParseCIDR(addr.String())
+			if err != nil {
+				fmt.Printf("\nError failed to parse address %s of interface %s : %v", addr.String(), ifaceName, err)
+				continue
+			}
+			fmt.Printf("\nDEBUG ifaceIP : %v", ifaceIP)
+			fmt.Printf("\nDEBUG ifaceSubnet : %v", ifaceSubnet)
+
+			// Check if the IP belongs to the subnet
+			if ifaceSubnet.Contains(ip) || ifaceIP.Equal(ip) {
+				found = true
+			}
+		}
+		if found {
+			filterredIPs = append(filterredIPs, ipAddr)
+		}
+		fmt.Printf("\nDEBUG filterredIPs : %v", filterredIPs)
+	}
+
+	return filterredIPs, nil
 }
