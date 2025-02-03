@@ -338,6 +338,7 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 		fmt.Printf("\nError getting iscsi interfaces: %v", err)
 		return []ISCSIInterface{}, err
 	}
+	fmt.Printf("\nDEBUG iscsiadm -m iface output : %v", string(output))
 
 	// Parse each line into an ISCSIInterface struct
 	interfaces := make([]ISCSIInterface, 0)
@@ -373,7 +374,34 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 
 // GetInterfaceForTargetIP returns the iSCSI interfaces for target IP
 func (iscsi *LinuxISCSI) GetInterfaceForTargetIP(address ...string) (map[string]string, error) {
-	return make(map[string]string, 0), nil
+	ipInterface := make(map[string]string, 0)
+
+	iscsiInterfaces, err := iscsi.GetInterfaces()
+	if err != nil {
+		fmt.Printf("\nError failed to get iscsi interfaces: %v", err)
+		return ipInterface, err
+	}
+	fmt.Printf("\nDEBUG iscsiInterfaces : %v", iscsiInterfaces)
+
+	interfaceMap := make(map[string]string, len(iscsiInterfaces))
+	for _, iface := range iscsiInterfaces {
+		interfaceMap[iface.IfaceName] = iface.NetIfaceName
+	}
+	fmt.Printf("\nDEBUG interfaceMap : %v", interfaceMap)
+
+	for ifaceName, netIfaceName := range interfaceMap {
+		filteredIPs, err := filterIPsForInterface(netIfaceName, address...)
+		if err != nil {
+			fmt.Printf("\nError filtering IPs: %v", err)
+			continue
+		}
+		for _, ip := range filteredIPs {
+			ipInterface[ip] = ifaceName
+		}
+		fmt.Printf("\nDEBUG interfaceMap : %v", interfaceMap)
+	}
+
+	return ipInterface, nil
 }
 
 // GetNodes will query information about nodes
