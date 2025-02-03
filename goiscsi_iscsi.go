@@ -82,10 +82,15 @@ func (iscsi *LinuxISCSI) buildISCSICommand(cmd []string) []string {
 
 // DiscoverTargets runs an iSCSI discovery and returns a list of targets.
 func (iscsi *LinuxISCSI) DiscoverTargets(address string, login bool) ([]ISCSITarget, error) {
-	return iscsi.discoverTargets(address, login)
+	return iscsi.discoverTargets(address, "", login)
 }
 
-func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITarget, error) {
+// DiscoverTargetsWithInterface runs an iSCSI discovery with intreface and returns a list of targets.
+func (iscsi *LinuxISCSI) DiscoverTargetsWithInterface(address, iface string, login bool) ([]ISCSITarget, error) {
+	return iscsi.discoverTargets(address, iface, login)
+}
+
+func (iscsi *LinuxISCSI) discoverTargets(address, iface string, login bool) ([]ISCSITarget, error) {
 	// iSCSI discovery is done via the iscsiadm cli
 	// iscsiadm -m discovery -t st --portal <target>
 
@@ -95,7 +100,12 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 		fmt.Printf("\nError invalid address %s: %v", address, err)
 		return []ISCSITarget{}, err
 	}
-	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "discovery", "-t", "st", "--portal", address})
+	cmdArgs := []string{"iscsiadm", "-m", "discovery", "-t", "st", "--portal", address}
+	if len(iface) != 0 {
+		cmdArgs = append(cmdArgs, "-I", iface)
+	}
+	exe := iscsi.buildISCSICommand(cmdArgs)
+	fmt.Printf("\nDEBUG iscsiadm discover command : %v", exe)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
 	defer cancel()
 
@@ -106,6 +116,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 		fmt.Printf("\nError discovering %s: %v", address, err)
 		return []ISCSITarget{}, err
 	}
+	fmt.Printf("\nDEBUG iscsiadm discover output : %v", string(out))
 
 	targets := make([]ISCSITarget, 0)
 
@@ -134,12 +145,6 @@ func (iscsi *LinuxISCSI) discoverTargets(address string, login bool) ([]ISCSITar
 	}
 
 	return targets, nil
-}
-
-// DiscoverTargetsWithInterface runs an iSCSI discovery with intreface and returns a list of targets.
-func (iscsi *LinuxISCSI) DiscoverTargetsWithInterface(address, iface string, login bool) ([]ISCSITarget, error) {
-	// TODO: Implement the core logic for iSCSI discovery with interface.
-	return nil, nil
 }
 
 // GetInitiators returns a list of initiators on the local system.
