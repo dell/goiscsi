@@ -25,6 +25,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -106,6 +108,25 @@ func TestDiscoverUnreachableTargets(t *testing.T) {
 	// response should come within Timeout + 2 seconds
 	if err != nil && (timeAftertest.Sub(timeBeforeTestStart).Seconds() > Timeout+2) {
 		t.Error(err.Error())
+	}
+}
+
+func TestDiscoverTargetsWithInterface(t *testing.T) {
+	reset()
+	c := NewLinuxISCSI(map[string]string{})
+
+	expectedError := errors.New("error invalid IP or portal address")
+	_, err := c.DiscoverTargetsWithInterface("", "iface0", false)
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+		return
+	}
+
+	expectedError = errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
+	_, err = c.DiscoverTargetsWithInterface(testPortal, "iface0", false)
+	if err.Error() != expectedError.Error() {
+		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+		return
 	}
 }
 
@@ -742,5 +763,92 @@ func TestFieldKeyValue(t *testing.T) {
 	}
 	if value != "LOGGED IN" {
 		t.Error("invalid value")
+	}
+}
+
+func TestGetInterfaceForTargetIP(t *testing.T) {
+	tests := []struct {
+		name    string
+		address []string
+		cmdOut  []byte
+		cmdErr  error
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			name:    "no addresses",
+			address: []string{},
+			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "single address",
+			address: []string{"127.0.0.1"},
+			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{"127.0.0.1": "iface0"},
+			wantErr: false,
+		},
+		{
+			name:    "multiple addresses",
+			address: []string{"127.0.0.1", "255.0.0.1"},
+			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{"127.0.0.1": "iface0"},
+			wantErr: false,
+		},
+		{
+			name:    "error getting interfaces",
+			address: []string{"1.2.3.4"},
+			cmdOut:  []byte(""),
+			cmdErr:  fmt.Errorf("iscsiadm error"),
+			want:    map[string]string{},
+			wantErr: true,
+		},
+		{
+			name:    "invalid network interfaces",
+			address: []string{"1.2.3.4"},
+			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,abc,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "invalid IPs",
+			address: []string{"1.2.3"},
+			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a new instance of LinuxISCSI
+			reset()
+			iscsi := NewLinuxISCSI(map[string]string{})
+
+			// Set up mocks or other dependencies
+			runCommand = func(_ *exec.Cmd) ([]byte, error) {
+				return tt.cmdOut, tt.cmdErr
+			}
+
+			// Call the GetInterfaceForTargetIP function
+			got, err := iscsi.GetInterfaceForTargetIP(tt.address...)
+
+			// Check if the error matches the expected error
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetInterfaceForTargetIP() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			// Check if the result matches the expected result
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetInterfaceForTargetIP() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

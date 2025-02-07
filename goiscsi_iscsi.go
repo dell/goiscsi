@@ -42,6 +42,11 @@ const (
 	Timeout = 30
 )
 
+var runCommand = func(cmd *exec.Cmd) ([]byte, error) {
+	output, err := cmd.Output()
+	return output, err
+}
+
 // LinuxISCSI provides many iSCSI-specific functions.
 type LinuxISCSI struct {
 	ISCSIType
@@ -105,7 +110,7 @@ func (iscsi *LinuxISCSI) discoverTargets(address, iface string, login bool) ([]I
 		cmdArgs = append(cmdArgs, "-I", iface)
 	}
 	exe := iscsi.buildISCSICommand(cmdArgs)
-	fmt.Printf("\nDEBUG iscsiadm discover command : %v", exe)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout)*time.Second)
 	defer cancel()
 
@@ -116,7 +121,6 @@ func (iscsi *LinuxISCSI) discoverTargets(address, iface string, login bool) ([]I
 		fmt.Printf("\nError discovering %s: %v", address, err)
 		return []ISCSITarget{}, err
 	}
-	fmt.Printf("\nDEBUG iscsiadm discover output : %v", string(out))
 
 	targets := make([]ISCSITarget, 0)
 
@@ -338,12 +342,11 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 	// iscsiadm -m iface
 	exe := iscsi.buildISCSICommand([]string{"iscsiadm", "-m", "iface"})
 	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
-	output, err := cmd.Output()
+	output, err := runCommand(cmd)
 	if err != nil {
 		fmt.Printf("\nError getting iscsi interfaces: %v", err)
 		return []ISCSIInterface{}, err
 	}
-	fmt.Printf("\nDEBUG iscsiadm -m iface output : %v", string(output))
 
 	// Parse each line into an ISCSIInterface struct
 	interfaces := make([]ISCSIInterface, 0)
@@ -381,18 +384,22 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 func (iscsi *LinuxISCSI) GetInterfaceForTargetIP(address ...string) (map[string]string, error) {
 	ipInterface := make(map[string]string, 0)
 
+	if len(address) == 0 {
+		return ipInterface, nil
+	}
+
 	iscsiInterfaces, err := iscsi.GetInterfaces()
 	if err != nil {
 		fmt.Printf("\nError failed to get iscsi interfaces: %v", err)
 		return ipInterface, err
 	}
-	fmt.Printf("\nDEBUG iscsiInterfaces : %v", iscsiInterfaces)
 
 	interfaceMap := make(map[string]string, len(iscsiInterfaces))
 	for _, iface := range iscsiInterfaces {
-		interfaceMap[iface.IfaceName] = iface.NetIfaceName
+		if len(iface.NetIfaceName) != 0 && iface.NetIfaceName != "<empty>" {
+			interfaceMap[iface.IfaceName] = iface.NetIfaceName
+		}
 	}
-	fmt.Printf("\nDEBUG interfaceMap : %v", interfaceMap)
 
 	for ifaceName, netIfaceName := range interfaceMap {
 		filteredIPs, err := filterIPsForInterface(netIfaceName, address...)
@@ -403,7 +410,7 @@ func (iscsi *LinuxISCSI) GetInterfaceForTargetIP(address ...string) (map[string]
 		for _, ip := range filteredIPs {
 			ipInterface[ip] = ifaceName
 		}
-		fmt.Printf("\nDEBUG interfaceMap : %v", interfaceMap)
+
 	}
 
 	return ipInterface, nil

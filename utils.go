@@ -57,7 +57,7 @@ func validateIQN(iqn string) error {
 }
 
 func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, error) {
-	fmt.Printf("\nDEBUG ifaceName : %v", ifaceName)
+
 	filterredIPs := make([]string, 0)
 	iface, err := net.InterfaceByName(ifaceName)
 	if err != nil {
@@ -72,7 +72,7 @@ func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, err
 	}
 
 	for _, ipAddr := range ipAddress {
-		fmt.Printf("\nDEBUG ipAddr : %v", ipAddr)
+
 		ip := net.ParseIP(ipAddr)
 		if ip == nil {
 			fmt.Printf("\nError invalid IP address: %s", ipAddr)
@@ -85,8 +85,6 @@ func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, err
 				fmt.Printf("\nError failed to parse address %s of interface %s : %v", addr.String(), ifaceName, err)
 				continue
 			}
-			fmt.Printf("\nDEBUG ifaceIP : %v", ifaceIP)
-			fmt.Printf("\nDEBUG ifaceSubnet : %v", ifaceSubnet)
 
 			// Check if the IP belongs to the subnet
 			if ifaceSubnet.Contains(ip) || ifaceIP.Equal(ip) {
@@ -96,7 +94,7 @@ func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, err
 		if found {
 			filterredIPs = append(filterredIPs, ipAddr)
 		}
-		fmt.Printf("\nDEBUG filterredIPs : %v", filterredIPs)
+
 	}
 
 	return filterredIPs, nil
