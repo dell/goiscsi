@@ -57,7 +57,6 @@ func validateIQN(iqn string) error {
 }
 
 func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, error) {
-
 	filterredIPs := make([]string, 0)
 	iface, err := net.InterfaceByName(ifaceName)
 	if err != nil {

@@ -255,12 +255,12 @@ func (iscsi *MockISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 }
 
 // GetInterfaceForTargetIP returns the iSCSI interfaces for target IP
-func (iscsi *MockISCSI) GetInterfaceForTargetIP(address ...string) (map[string]string, error) {
+func (iscsi *MockISCSI) GetInterfaceForTargetIP(_ ...string) (map[string]string, error) {
 	return make(map[string]string, 0), nil
 }
 
 // DiscoverTargetsWithInterface runs an iSCSI discovery with intreface and returns a list of targets.
-func (iscsi *MockISCSI) DiscoverTargetsWithInterface(address, iface string, login bool) ([]ISCSITarget, error) {
+func (iscsi *MockISCSI) DiscoverTargetsWithInterface(_, _ string, _ bool) ([]ISCSITarget, error) {
 	return []ISCSITarget{}, nil
 }
 
