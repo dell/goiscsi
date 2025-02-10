@@ -1,23 +1,25 @@
 name: Release GoiSCSI
 # Invocable as a reusable workflow
 # Can be manually triggered
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   workflow_call:
   workflow_dispatch:
     inputs:
       option:
-        description: 'Select version to release'
+        description: "Select version to release"
         required: true
         type: choice
-        default: 'minor'
+        default: "minor"
         options:
           - major
           - minor
           - patch
+  repository_dispatch:
+    types: [release-go-libs]
 jobs:
   csm-release:
     uses: dell/common-github-actions/.github/workflows/csm-release-libs.yaml@main
     name: Release Go Client Libraries
     with:
-      version: ${{ github.event.inputs.option }}
+      version: "${{ github.event.inputs.version || 'minor' }}"
     secrets: inherit
