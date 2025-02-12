@@ -260,8 +260,8 @@ func (iscsi *MockISCSI) GetInterfaceForTargetIP(_ ...string) (map[string]string,
 }
 
 // DiscoverTargetsWithInterface runs an iSCSI discovery with intreface and returns a list of targets.
-func (iscsi *MockISCSI) DiscoverTargetsWithInterface(_, _ string, _ bool) ([]ISCSITarget, error) {
-	return iscsi.discoverTargets(address, login), nil
+func (iscsi *MockISCSI) DiscoverTargetsWithInterface(address, _ string, login bool) ([]ISCSITarget, error) {
+	return iscsi.discoverTargets(address, login)
 }
 
 // SetCHAPCredentials will set CHAP credentials
