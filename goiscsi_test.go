@@ -264,6 +264,7 @@ func TestDiscoverTargetsWithInterface(t *testing.T) {
 		})
 	}
 }
+
 func TestLoginLogoutTargets(t *testing.T) {
 	reset()
 	c := NewLinuxISCSI(map[string]string{})
@@ -274,7 +275,7 @@ func TestLoginLogoutTargets(t *testing.T) {
 	}
 
 	// Mock the runCommand function to simulate environment where iscsiadm is not found
-	runCommand = func(cmd *exec.Cmd) ([]byte, error) {
+	runCommand = func(_ *exec.Cmd) ([]byte, error) {
 		return nil, errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
 	}
 
