@@ -446,31 +446,131 @@ func TestGetNodes(t *testing.T) {
 }
 
 func TestCreateOrUpdateNode(t *testing.T) {
-	reset()
-	c := NewLinuxISCSI(map[string]string{})
-	tgt := ISCSITarget{
-		Portal: "10.0.0.0",
-		Target: "iqn.1991-05.com.emc:dummyExample",
+	iscsi := &LinuxISCSI{}
+
+	tests := []struct {
+		name        string
+		target      ISCSITarget
+		options     map[string]string
+		cmdOut      []byte
+		cmdErr      error
+		expectedErr string
+	}{
+		{
+			name:        "test invalid portal address",
+			target:      ISCSITarget{Portal: "invalid", Target: "valid.iqn"},
+			options:     map[string]string{},
+			cmdOut:      nil,
+			cmdErr:      nil,
+			expectedErr: "error invalid IP or portal address",
+		},
+		{
+			name:        "test invalid IQN target",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "invalid"},
+			options:     map[string]string{},
+			cmdOut:      nil,
+			cmdErr:      nil,
+			expectedErr: "error invalid IQN",
+		},
+		{
+			name:        "test iscsiadm node not found",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			options:     map[string]string{},
+			cmdOut:      nil,
+			cmdErr:      simulateExitCode(21), // simulate "no objects found" exit code
+			expectedErr: `exec: "iscsiadm": executable file not found in $PATH`,
+		},
 	}
-	opt := make(map[string]string)
-	err := c.CreateOrUpdateNode(tgt, opt)
-	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
-	if err.Error() != expectedError.Error() {
-		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			runCommand = func(_ *exec.Cmd) ([]byte, error) {
+				return test.cmdOut, test.cmdErr
+			}
+			err := iscsi.CreateOrUpdateNode(test.target, test.options)
+			if err != nil {
+				if err.Error() != test.expectedErr {
+					t.Errorf("Expected error: %v, but got: %v", test.expectedErr, err)
+				}
+			} else {
+				if test.expectedErr != "" {
+					t.Errorf("Expected error: %v, but got no error", test.expectedErr)
+				}
+			}
+		})
 	}
 }
 
 func TestDeleteNode(t *testing.T) {
-	reset()
-	c := NewLinuxISCSI(map[string]string{})
-	tgt := ISCSITarget{
-		Portal: "10.0.0.0",
-		Target: "iqn.1991-05.com.emc:dummyExample",
+	iscsi := &LinuxISCSI{}
+
+	tests := []struct {
+		name        string
+		target      ISCSITarget
+		cmdErr      error
+		expectedErr string
+	}{
+		{
+			name: "test valid target",
+			target: ISCSITarget{
+				Portal: "1.1.1.1",
+				Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001",
+			},
+			cmdErr:      nil,
+			expectedErr: "",
+		},
+		{
+			name: "test invalid portal address",
+			target: ISCSITarget{
+				Portal: "",
+				Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001",
+			},
+			cmdErr:      nil,
+			expectedErr: "error invalid IP or portal address",
+		},
+		{
+			name: "test invalid IQN target",
+			target: ISCSITarget{
+				Portal: "1.1.1.1",
+				Target: "",
+			},
+			cmdErr:      nil,
+			expectedErr: "error invalid IQN",
+		},
+		{
+			name: "test iscsiadm command error",
+			target: ISCSITarget{
+				Portal: "1.1.1.1",
+				Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001",
+			},
+			cmdErr:      fmt.Errorf("command failed"),
+			expectedErr: "command failed",
+		},
+		{
+			name: "test iscsiadm no objects exit code",
+			target: ISCSITarget{
+				Portal: "1.1.1.1",
+				Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001",
+			},
+			cmdErr:      simulateExitCode(21),
+			expectedErr: "",
+		},
 	}
-	err := c.DeleteNode(tgt)
-	expectedError := errors.New("exec: \"iscsiadm\": executable file not found in $PATH")
-	if err.Error() != expectedError.Error() {
-		t.Errorf("Expected error: %v, but got: %v", expectedError, err)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			runCommand = func(_ *exec.Cmd) ([]byte, error) {
+				return nil, test.cmdErr
+			}
+			err := iscsi.DeleteNode(test.target)
+			if err != nil {
+				if err.Error() != test.expectedErr {
+					t.Errorf("Expected error: %v, but got: %v", test.expectedErr, err)
+				}
+			} else if test.expectedErr != "" {
+				t.Errorf("Expected error: %v, but got no error", test.expectedErr)
+			}
+		})
 	}
 }
 
@@ -1072,6 +1172,20 @@ func TestPerformLogin(t *testing.T) {
 			expectedErr: "exec: \"iscsiadm\": executable file not found in $PATH",
 		},
 		{
+			name:        "test iscsiadm login failure",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      simulateExitCode(1),
+			expectedErr: "exit status 1",
+		},
+		{
+			name:        "test session already exists",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      simulateExitCode(15),
+			expectedErr: "",
+		},
+		{
 			name:        "test successful login",
 			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
 			cmdOut:      nil,
@@ -1086,6 +1200,84 @@ func TestPerformLogin(t *testing.T) {
 				return test.cmdOut, test.cmdErr
 			}
 			err := iscsi.performLogin(test.target)
+			if err != nil {
+				if err.Error() != test.expectedErr {
+					t.Errorf("Expected error: %v, but got: %v", test.expectedErr, err)
+				}
+			} else {
+				if test.expectedErr != "" {
+					t.Errorf("Expected error: %v, but got no error", test.expectedErr)
+				}
+			}
+		})
+	}
+}
+
+func simulateExitCode(exitCode int) error {
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("exit %d", exitCode))
+	return cmd.Run()
+}
+
+func TestPerformLogout(t *testing.T) {
+	iscsi := &LinuxISCSI{}
+
+	tests := []struct {
+		name        string
+		target      ISCSITarget
+		cmdOut      []byte
+		cmdErr      error
+		expectedErr string
+	}{
+		{
+			name:        "test invalid portal address",
+			target:      ISCSITarget{Portal: "invalid", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      nil,
+			expectedErr: "error invalid IP or portal address",
+		},
+		{
+			name:        "test invalid IQN target",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "invalid"},
+			cmdOut:      nil,
+			cmdErr:      fmt.Errorf("error invalid IQN Target invalid: invalid IQN"),
+			expectedErr: "error invalid IQN",
+		},
+		{
+			name:        "test iscsiadm executable not found",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      fmt.Errorf("exec: \"iscsiadm\": executable file not found in $PATH"),
+			expectedErr: "exec: \"iscsiadm\": executable file not found in $PATH",
+		},
+		{
+			name:        "test iscsiadm logout failure",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      simulateExitCode(1),
+			expectedErr: "exit status 1",
+		},
+		{
+			name:        "test session already logged out",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      simulateExitCode(15),
+			expectedErr: "",
+		},
+		{
+			name:        "test successful logout",
+			target:      ISCSITarget{Portal: "1.1.1.1", Target: "iqn.1992-04.com.emc:600009700bcbb70e3287017400000001"},
+			cmdOut:      nil,
+			cmdErr:      nil,
+			expectedErr: "",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			runCommand = func(_ *exec.Cmd) ([]byte, error) {
+				return test.cmdOut, test.cmdErr
+			}
+			err := iscsi.performLogout(test.target)
 			if err != nil {
 				if err.Error() != test.expectedErr {
 					t.Errorf("Expected error: %v, but got: %v", test.expectedErr, err)
