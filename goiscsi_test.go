@@ -1214,8 +1214,22 @@ func TestPerformLogin(t *testing.T) {
 }
 
 func simulateExitCode(exitCode int) error {
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("exit %d", exitCode))
+	// Sanitize the input to ensure it's a valid exit code
+	sanitizedExitCode, err := sanitizeInput(exitCode)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("exit %d", sanitizedExitCode))
 	return cmd.Run()
+}
+
+func sanitizeInput(exitCode int) (int, error) {
+	// Ensure the exit code is within the range of valid exit codes: 0-255 for Unix-like systems
+	if exitCode < 0 || exitCode > 255 {
+		return 0, errors.New("invalid exit code: must be within 0-255")
+	}
+	return exitCode, nil
 }
 
 func TestPerformLogout(t *testing.T) {
