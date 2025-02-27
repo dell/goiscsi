@@ -173,7 +173,6 @@ func (iscsi *MockISCSI) getSessions() ([]ISCSISession, error) {
 	session.IfaceIPaddress = "192.168.1.10"
 	sessions = append(sessions, session)
 	return sessions, nil
-	return sessions, nil
 }
 
 func (iscsi *MockISCSI) getNodes() ([]ISCSINode, error) {
