@@ -1,0 +1,7 @@
+site_name: 'goiscsi'
+site_description: 'goiscsi Documentation.'
+docs_dir: docs
+plugins:
+  - techdocs-core
+theme:
+  name: material
