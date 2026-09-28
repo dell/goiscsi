@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright © 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+ * Copyright © 2019-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -494,6 +494,144 @@ func TestCreateOrUpdateNode(t *testing.T) {
 			} else {
 				if test.expectedErr != "" {
 					t.Errorf("Expected error: %v, but got no error", test.expectedErr)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateOrUpdateNodeAcceptsBracketedIPv6Portal(t *testing.T) {
+	iscsi := &LinuxISCSI{}
+	runCommand = func(_ *exec.Cmd) ([]byte, error) {
+		return nil, nil
+	}
+
+	err := iscsi.CreateOrUpdateNode(
+		ISCSITarget{
+			Portal: "[2607:f2b1:f1d0:76c::1a6]:3260",
+			Target: "iqn.2015-10.com.dell:dellemc-powerstore-gf8ypm3-a-6922c86f",
+		},
+		map[string]string{},
+	)
+	if err != nil {
+		t.Fatalf("expected bracketed IPv6 portal to be accepted, got %v", err)
+	}
+}
+
+func TestValidateIPAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		portal      string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:    "valid IPv4 address",
+			portal:  "1.2.3.4",
+			wantErr: false,
+		},
+		{
+			name:    "valid IPv4 with port",
+			portal:  "1.2.3.4:3260",
+			wantErr: false,
+		},
+		{
+			name:    "valid IPv6 address",
+			portal:  "2001:db8::1",
+			wantErr: false,
+		},
+		{
+			name:    "valid bracketed IPv6 with port",
+			portal:  "[2001:db8::1]:3260",
+			wantErr: false,
+		},
+		{
+			name:    "valid bracketed IPv6 with different port",
+			portal:  "[2607:f2b1:f1d0:76c::1a6]:3260",
+			wantErr: false,
+		},
+		{
+			name:        "IPv4 with empty port",
+			portal:      "1.2.3.4:",
+			wantErr:     true,
+			errContains: "empty port",
+		},
+		{
+			name:        "IPv4 with non-numeric port",
+			portal:      "1.2.3.4:abc",
+			wantErr:     true,
+			errContains: "non-numeric port",
+		},
+		{
+			name:        "bracketed IPv6 with empty port",
+			portal:      "[2001:db8::1]:",
+			wantErr:     true,
+			errContains: "empty port",
+		},
+		{
+			name:        "bracketed IPv6 with non-numeric port",
+			portal:      "[2001:db8::1]:abc",
+			wantErr:     true,
+			errContains: "non-numeric port",
+		},
+		{
+			name:        "IPv4 with port 0 (out of range)",
+			portal:      "1.2.3.4:0",
+			wantErr:     true,
+			errContains: "port out of range",
+		},
+		{
+			name:        "IPv4 with port 65536 (out of range)",
+			portal:      "1.2.3.4:65536",
+			wantErr:     true,
+			errContains: "port out of range",
+		},
+		{
+			name:    "IPv4 with port 65535 (valid max)",
+			portal:  "1.2.3.4:65535",
+			wantErr: false,
+		},
+		{
+			name:    "IPv4 with port 1 (valid min)",
+			portal:  "1.2.3.4:1",
+			wantErr: false,
+		},
+		{
+			name:        "invalid IP address",
+			portal:      "invalid",
+			wantErr:     true,
+			errContains: "invalid IP or portal address",
+		},
+		{
+			name:        "empty string",
+			portal:      "",
+			wantErr:     true,
+			errContains: "invalid IP or portal address",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			iscsi := &LinuxISCSI{}
+			runCommand = func(_ *exec.Cmd) ([]byte, error) {
+				return nil, nil
+			}
+
+			err := iscsi.CreateOrUpdateNode(
+				ISCSITarget{
+					Portal: tt.portal,
+					Target: "iqn.2015-10.com.dell:dellemc-powerstore-gf8ypm3-a-6922c86f",
+				},
+				map[string]string{},
+			)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateOrUpdateNode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil && tt.errContains != "" {
+				if !strings.Contains(err.Error(), tt.errContains) {
+					t.Errorf("CreateOrUpdateNode() error = %v, expected to contain %v", err, tt.errContains)
 				}
 			}
 		})
@@ -1061,6 +1199,22 @@ func TestGetInterfaceForTargetIP(t *testing.T) {
 			name:    "invalid IPs",
 			address: []string{"1.2.3"},
 			cmdOut:  []byte("iface0 tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "non-TCP transport ignored",
+			address: []string{"127.0.0.1"},
+			cmdOut:  []byte("bnx2i.74:e6:e2:bb:4e:9a.ipv4.0 bnx2i,00:00:00:00:00:00,default,lo,<empty>\ndefault tcp,<empty>,<empty>,lo,<empty>"),
+			cmdErr:  nil,
+			want:    map[string]string{"127.0.0.1": "default"},
+			wantErr: false,
+		},
+		{
+			name:    "only non-TCP transport returns empty",
+			address: []string{"127.0.0.1"},
+			cmdOut:  []byte("iser iser,<empty>,<empty>,lo,<empty>"),
 			cmdErr:  nil,
 			want:    map[string]string{},
 			wantErr: false,

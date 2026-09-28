@@ -20,13 +20,14 @@ package goiscsi
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/dell/csmlog"
 )
 
 const (
@@ -102,7 +103,12 @@ func (iscsi *LinuxISCSI) discoverTargets(address, iface string, login bool) ([]I
 	// validate for valid address
 	err := validateIPAddress(address)
 	if err != nil {
-		fmt.Printf("\nError invalid address %s: %v", address, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "DiscoverTargets",
+			csmlog.FieldError:     err.Error(),
+			"address":             address,
+		}).Error("invalid address")
 		return []ISCSITarget{}, err
 	}
 	cmdArgs := []string{"iscsiadm", "-m", "discovery", "-t", "st", "--portal", address}
@@ -118,7 +124,12 @@ func (iscsi *LinuxISCSI) discoverTargets(address, iface string, login bool) ([]I
 
 	out, err := runCommand(cmd)
 	if err != nil {
-		fmt.Printf("\nError discovering %s: %v", address, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "DiscoverTargets",
+			csmlog.FieldError:     err.Error(),
+			"address":             address,
+		}).Error("discovery failed")
 		return []ISCSITarget{}, err
 	}
 
@@ -184,7 +195,11 @@ func (iscsi *LinuxISCSI) getInitiators(filename string) ([]string, error) {
 		// get the contents of the initiator config file
 		cmd, err := os.ReadFile(filepath.Clean(init))
 		if err != nil {
-			fmt.Printf("Error gathering initiator names: %v", err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "GetInitiators",
+				csmlog.FieldError:     err.Error(),
+			}).Error("failed to read initiator config")
 			return nil, err
 		}
 		lines := strings.Split(string(cmd), "\n")
@@ -211,13 +226,23 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 
 	err := validateIPAddress(target.Portal)
 	if err != nil {
-		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "PerformLogin",
+			csmlog.FieldError:     err.Error(),
+			"portal":              target.Portal,
+		}).Error("invalid portal address")
 		return err
 	}
 
 	err = validateIQN(target.Target)
 	if err != nil {
-		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "PerformLogin",
+			csmlog.FieldError:     err.Error(),
+			"target":              target.Target,
+		}).Error("invalid IQN target")
 		return err
 	}
 
@@ -240,14 +265,32 @@ func (iscsi *LinuxISCSI) performLogin(target ISCSITarget) error {
 				// do not treat this as a failure
 				err = nil
 			} else {
-				fmt.Printf("\niscsiadm login failure: %v", err)
+				csmlog.WithFields(csmlog.Fields{
+					csmlog.FieldComponent: "goiscsi",
+					csmlog.FieldOperation: "PerformLogin",
+					csmlog.FieldError:     err.Error(),
+					"target":              target.Target,
+					"portal":              target.Portal,
+				}).Error("iscsiadm login failure")
 			}
 		} else {
-			fmt.Printf("\nError logging %s at %s: %v", target.Target, target.Portal, err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "PerformLogin",
+				csmlog.FieldError:     err.Error(),
+				"target":              target.Target,
+				"portal":              target.Portal,
+			}).Error("login failed")
 		}
 
 		if err != nil {
-			fmt.Printf("\nError logging %s at %s: %v", target.Target, target.Portal, err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "PerformLogin",
+				csmlog.FieldError:     err.Error(),
+				"target":              target.Target,
+				"portal":              target.Portal,
+			}).Error("login failed")
 			return err
 		}
 	}
@@ -261,17 +304,27 @@ func (iscsi *LinuxISCSI) PerformLogout(target ISCSITarget) error {
 }
 
 func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
-	// iSCSI login is done via the iscsiadm cli
-	// iscsiadm -m node -T <target> --portal <address> -l
+	// iSCSI logout is done via the iscsiadm cli
+	// iscsiadm -m node -T <target> --portal <address> --logout
 	err := validateIPAddress(target.Portal)
 	if err != nil {
-		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "PerformLogout",
+			csmlog.FieldError:     err.Error(),
+			"portal":              target.Portal,
+		}).Error("invalid portal address")
 		return err
 	}
 
 	err = validateIQN(target.Target)
 	if err != nil {
-		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "PerformLogout",
+			csmlog.FieldError:     err.Error(),
+			"target":              target.Target,
+		}).Error("invalid IQN target")
 		return err
 	}
 
@@ -291,14 +344,32 @@ func (iscsi *LinuxISCSI) performLogout(target ISCSITarget) error {
 				// do not treat this as a failure
 				err = nil
 			} else {
-				fmt.Printf("iscsiadm login failure: %v", err)
+				csmlog.WithFields(csmlog.Fields{
+					csmlog.FieldComponent: "goiscsi",
+					csmlog.FieldOperation: "PerformLogout",
+					csmlog.FieldError:     err.Error(),
+					"target":              target.Target,
+					"portal":              target.Portal,
+				}).Error("iscsiadm logout failure")
 			}
 		} else {
-			fmt.Printf("Error logging %s at %s: %v", target.Target, target.Portal, err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "PerformLogout",
+				csmlog.FieldError:     err.Error(),
+				"target":              target.Target,
+				"portal":              target.Portal,
+			}).Error("logout failed")
 		}
 
 		if err != nil {
-			fmt.Printf("Error logging %s at %s: %v", target.Target, target.Portal, err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "PerformLogout",
+				csmlog.FieldError:     err.Error(),
+				"target":              target.Target,
+				"portal":              target.Portal,
+			}).Error("logout failed")
 			return err
 		}
 	}
@@ -344,7 +415,11 @@ func (iscsi *LinuxISCSI) GetInterfaces() ([]ISCSIInterface, error) {
 	cmd := exec.Command(exe[0], exe[1:]...) // #nosec G204
 	output, err := runCommand(cmd)
 	if err != nil {
-		fmt.Printf("\nError getting iscsi interfaces: %v", err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "GetInterfaces",
+			csmlog.FieldError:     err.Error(),
+		}).Error("failed to get iSCSI interfaces")
 		return []ISCSIInterface{}, err
 	}
 
@@ -390,21 +465,36 @@ func (iscsi *LinuxISCSI) GetInterfaceForTargetIP(address ...string) (map[string]
 
 	iscsiInterfaces, err := iscsi.GetInterfaces()
 	if err != nil {
-		fmt.Printf("\nError failed to get iscsi interfaces: %v", err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "GetInterfaceForTargetIP",
+			csmlog.FieldError:     err.Error(),
+		}).Error("failed to get iSCSI interfaces")
 		return ipInterface, err
 	}
 
 	interfaceMap := make(map[string]string, len(iscsiInterfaces))
 	for _, iface := range iscsiInterfaces {
-		if len(iface.NetIfaceName) != 0 && iface.NetIfaceName != "<empty>" {
-			interfaceMap[iface.IfaceName] = iface.NetIfaceName
+		if len(iface.NetIfaceName) == 0 || iface.NetIfaceName == "<empty>" {
+			continue
 		}
+		// Only use TCP interfaces for software iSCSI discovery.
+		// Offload transports (e.g. bnx2i, iser) are not valid for TCP portals.
+		if !strings.EqualFold(iface.TransportName, string(ISCSITransportNameTCP)) {
+			continue
+		}
+		interfaceMap[iface.IfaceName] = iface.NetIfaceName
 	}
 
 	for ifaceName, netIfaceName := range interfaceMap {
 		filteredIPs, err := filterIPsForInterface(netIfaceName, address...)
 		if err != nil {
-			fmt.Printf("\nError filtering IPs: %v", err)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "GetInterfaceForTargetIP",
+				csmlog.FieldError:     err.Error(),
+				"interface":           netIfaceName,
+			}).Error("failed to filter IPs for interface")
 			continue
 		}
 		for _, ip := range filteredIPs {
@@ -443,13 +533,23 @@ func (iscsi *LinuxISCSI) SetCHAPCredentials(target ISCSITarget, username, passwo
 func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[string]string) error {
 	err := validateIPAddress(target.Portal)
 	if err != nil {
-		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "CreateOrUpdateNode",
+			csmlog.FieldError:     err.Error(),
+			"portal":              target.Portal,
+		}).Error("invalid portal address")
 		return err
 	}
 
 	err = validateIQN(target.Target)
 	if err != nil {
-		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "CreateOrUpdateNode",
+			csmlog.FieldError:     err.Error(),
+			"target":              target.Target,
+		}).Error("invalid IQN target")
 		return err
 	}
 	baseCmd := iscsi.buildISCSICommand(
@@ -485,13 +585,23 @@ func (iscsi *LinuxISCSI) CreateOrUpdateNode(target ISCSITarget, options map[stri
 func (iscsi *LinuxISCSI) DeleteNode(target ISCSITarget) error {
 	err := validateIPAddress(target.Portal)
 	if err != nil {
-		fmt.Printf("\nError invalid portal address %s: %v", target.Portal, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "DeleteNode",
+			csmlog.FieldError:     err.Error(),
+			"portal":              target.Portal,
+		}).Error("invalid portal address")
 		return err
 	}
 
 	err = validateIQN(target.Target)
 	if err != nil {
-		fmt.Printf("\nError invalid IQN Target %s: %v", target.Target, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "DeleteNode",
+			csmlog.FieldError:     err.Error(),
+			"target":              target.Target,
+		}).Error("invalid IQN target")
 		return err
 	}
 	exe := iscsi.buildISCSICommand(
