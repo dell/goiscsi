@@ -1,6 +1,6 @@
 /*
  *
- * Copyright © 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+ * Copyright © 2022-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,35 @@ package goiscsi
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"regexp"
+	"strconv"
+
+	"github.com/dell/csmlog"
 )
 
 func validateIPAddress(ip string) error {
-	isValidIP := true
-	isValidPortal := true
-
-	// validtes only IP
-	if net.ParseIP(ip) == nil {
-		isValidIP = false
+	if net.ParseIP(ip) != nil {
+		return nil
 	}
 
-	// Regex to validate IPV4 with port - for portal validation Ex: 10.0.0.0:1111
-	const exp = `^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]):[0-9]+$`
-	r := regexp.MustCompile(exp)
-	if !r.MatchString(ip) {
-		isValidPortal = false
+	// net.SplitHostPort accepts IPv4 host:port and bracketed IPv6 [host]:port.
+	host, port, err := net.SplitHostPort(ip)
+	if err == nil && net.ParseIP(host) != nil {
+		if port == "" {
+			return errors.New("error invalid IP or portal address: empty port")
+		}
+		portNum, err := strconv.ParseUint(port, 10, 32)
+		if err != nil {
+			return errors.New("error invalid IP or portal address: non-numeric port")
+		}
+		if portNum < 1 || portNum > 65535 {
+			return errors.New("error invalid IP or portal address: port out of range")
+		}
+		return nil
 	}
-	// Either valid IP/portal address should be given
-	if !isValidIP && !isValidPortal {
-		return errors.New("error invalid IP or portal address")
-	}
-	return nil
+
+	return errors.New("error invalid IP or portal address")
 }
 
 func validateIQN(iqn string) error {
@@ -60,13 +64,23 @@ func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, err
 	filteredIPs := make([]string, 0)
 	iface, err := net.InterfaceByName(ifaceName)
 	if err != nil {
-		fmt.Printf("\nError could not find interface %s : %v", ifaceName, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "filterIPsForInterface",
+			csmlog.FieldError:     err.Error(),
+			"interface":           ifaceName,
+		}).Error("could not find interface")
 		return filteredIPs, err
 	}
 
 	addrs, err := iface.Addrs()
 	if err != nil {
-		fmt.Printf("\nError failed to get addresses of interface %s : %v", ifaceName, err)
+		csmlog.WithFields(csmlog.Fields{
+			csmlog.FieldComponent: "goiscsi",
+			csmlog.FieldOperation: "filterIPsForInterface",
+			csmlog.FieldError:     err.Error(),
+			"interface":           ifaceName,
+		}).Error("failed to get addresses of interface")
 		return filteredIPs, err
 	}
 
@@ -74,13 +88,23 @@ func filterIPsForInterface(ifaceName string, ipAddress ...string) ([]string, err
 
 		ip := net.ParseIP(ipAddr)
 		if ip == nil {
-			fmt.Printf("\nError invalid IP address: %s", ipAddr)
+			csmlog.WithFields(csmlog.Fields{
+				csmlog.FieldComponent: "goiscsi",
+				csmlog.FieldOperation: "filterIPsForInterface",
+				"ip_address":          ipAddr,
+			}).Error("invalid IP address")
 			continue
 		}
 		for _, addr := range addrs {
 			ifaceIP, ifaceSubnet, err := net.ParseCIDR(addr.String())
 			if err != nil {
-				fmt.Printf("\nError failed to parse address %s of interface %s : %v", addr.String(), ifaceName, err)
+				csmlog.WithFields(csmlog.Fields{
+					csmlog.FieldComponent: "goiscsi",
+					csmlog.FieldOperation: "filterIPsForInterface",
+					csmlog.FieldError:     err.Error(),
+					"address":             addr.String(),
+					"interface":           ifaceName,
+				}).Error("failed to parse address")
 				continue
 			}
 
