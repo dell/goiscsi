@@ -2,7 +2,7 @@ module github.com/dell/goiscsi
 
 go 1.27
 
-require github.com/dell/csmlog v1.2.0
+require github.com/dell/csmlog v1.2.1
 
 require (
 	go.uber.org/multierr v1.10.0 // indirect
